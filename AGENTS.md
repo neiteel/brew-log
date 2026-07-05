@@ -41,12 +41,12 @@ Every feature/fix follows this sequence:
 4. **Test** - Verify in browser, run `pnpm build` and fix any errors
 5. **Iterate** - Make changes as needed
 6. **Commit** - Only after build passes (ask before committing)
-7. **Merge** - Merge to main
-8. **Delete Branch** - Ask to delete branch after merge
-9. **Review** - Review AI-generated code periodically
+7. **Review** - Review AI-generated code before merging
+8. **Merge** - Squash-merge to main
+9. **Delete Branch** - Ask to delete branch after merge
 10. **Complete** - Mark as completed in `context/current-feature.md` and add to history
 
-> The `/feature` skill covers Steps 1, 3–6, and 9–10. Git operations (Steps 2, 6–8) are done separately.
+> The `/feature` skill covers Steps 1, 3–7, and 10. Git operations (Steps 2, 6, 8–9) are done separately.
 
 # Branching & Commits
 
@@ -54,6 +54,7 @@ Every feature/fix follows this sequence:
 - Ask before committing — never auto-commit
 - Use conventional commit messages (`feat:`, `fix:`, `chore:`, etc.)
 - Keep commits focused (one feature/fix per commit)
+- Merge strategy: squash-merge feature branches (`git merge --squash`) so main stays one conventional commit per feature/fix
 - Never include "Generated With Claude" in commit messages
 
 # When Stuck

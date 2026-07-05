@@ -2,7 +2,7 @@
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
@@ -17,12 +17,26 @@ Not Started
 
 ## Notes
 
-### 設計方向
+### 設計方向（2026-07-02 依使用者參考圖修訂）
 
-- 字體：Inter（`next/font`），白底黑字，near-black `#111` 文字、灰階層次
-- shadcn/ui：由 使用者 執行 init 並設定 design tokens，**Phase 1 完成後先給使用者確認風格再繼續**
-- 版面語彙參考截圖：欄位用小型大寫灰色 label + 黑色值、卡片列表、hairline 分隔線
-- 風味雷達圖：自繪 SVG 五角雷達（如 screenshot 截圖），react-chartjs-2
+- **設計依據：`screenshot/typography` 文件全部＋講師網站截圖＋使用者給的參考截圖**
+- **英文網站**：UI 全英文（html lang="en"）
+- **Type scale（單一來源：`globals.css` @theme，L11）**，clamp = 斷點間等比縮放＋封頂（L10），基準 1500px：
+  - `text-display` clamp(4rem, 8vw, 7.5rem)：純圖形化大字（評分數字等），**不佔 h1–h6 語意標籤**
+  - `text-h1` 60px@1500 / lh 1.12 / -0.02em — 頁面標題
+  - `text-h2` 40px@1500 / lh 1.25 / -0.02em — 區塊標題（Bean/Recipe/Taste）
+  - `text-h3` 20px@1500 / lh 1.4 — 列表標題
+  - `text-body` 16px / lh 1.45；`text-small` 13px / lh 1.4
+  - 標題 font-medium；內文不加 tracking；大寫才拉字距
+- **標籤降階用括號 `(Label)`（L2 主題 6 / Pawel Achtelik）**：同字級，括號本身灰、內容可黑；次要值才用灰
+- **零容器**：不用 Card/Tabs/實色按鈕；資料列 1px hairline；區塊標題不加橫線
+- **全寬版面**：max-w-375（1500px），margin 手機 12px / 桌機 20px；資料列對齊 12 欄網格（gap 20px）：label 2 欄、value 4 欄、detail 6 欄
+- 垂直間距（8px 系統、組內近組間遠）：列 py-3；標題→內容 32/40px；section 間 96/160px
+- Nav：無底框線；連結黑色、hover 變淡、active 底線；手機底部文字導覽四格
+- 內容頁結構：Bean / Recipe / Taste 垂直排列
+- CTA：底線文字連結（無箭頭、無 icon）；表單用底線式 input
+- **風味分數：分段刻度列（TasteScale）**——每個屬性一列 hairline row，`(Label)` ＋ 5 格方塊刻度（填滿=黑、未填=細線外框）＋明確數字；同一套 12 欄 Row 網格。已移除 chart.js/react-chartjs-2（雷達圖難讀個別分數且風格不合）
+- 之後若此方向確認 OK，把教材觀念提煉成 skill
 
 ### 器具/沖煮法輸入（已決定：預設清單＋可自填）
 
@@ -35,7 +49,7 @@ Not Started
 
 - `user`（Better Auth 產生）+ `username`（公開頁用，唯一）
 - `beans`：user_id、roastery、roastery_country、name、origin_country、region、altitude、varietals、process、roast_level、roast_date、flavor_notes、cupping_score、price、weight_g、product_url、more_info、created_at
-- `brews`：user_id、bean_id、method、grinder、grind_setting、coffee_g、water_g、temperature_c、time_seconds、brew_weight_g、tds、extraction_yield、rating（1–10）、taste_aroma/sweetness/acidity/bitterness/body（0–5）、notes、is_public（預設 false）、brewed_at、created_at
+- `brews`：user_id、bean_id、method、grinder、grind_setting、coffee_g、water_g、temperature_c、time_seconds、brew_weight_g、tds、extraction_yield、rating（1–10）、taste_aroma/sweetness/acidity/bitterness/body（0–10，與總評同刻度）、notes、is_public（預設 false）、brewed_at、created_at
 - 比例（粉水比、粉液比）由欄位即時計算，不落庫
 
 ### 頁面（App Router）
