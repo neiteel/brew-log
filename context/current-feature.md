@@ -1,37 +1,32 @@
-# Current Feature: Phase 13 — 資料上限 + 列表分頁 + Bulk Seed
+# Current Feature
 
 ## Status
 
-Completed (2026-07-06)
+Not Started
 
 ## Goals
 
-- **Bulk seed**：新增 `src/lib/db/seed-bulk.ts` + `pnpm db:seed:bulk`。給 `test@example.com` 產生大量隨機資料（預設 25 豆 / 120 brews，`BULK_BEANS`/`BULK_BREWS` env 可調），方法／產地／烘焙度從固定池隨機、rating 與五項 taste 隨機、`brewedAt` 分散過去一年、約半數 `isPublic`。冪等（先清該 user 的 beans/brews）。直接走 db insert **刻意繞過上限**，方便做出「已達上限」與「多頁」的測試狀態。現有 `seed.ts`（精緻示範資料）保留不動。
-- **資料上限**：`src/lib/limits.ts` 定義 `MAX_BEANS_PER_USER = 10`、`MAX_BREWS_PER_USER = 50`（產品決定，2026-07-06 拍板）。只在 create server action 擋（insert 前 count，達上限回友善錯誤）；edit/delete 不影響；無 schema 變更。new bean / new brew 頁顯示「x / 上限」提示。
-- **列表分頁**：page-based（searchParams），每頁 10 筆（人工測試後從 20 調降）。共用 `<Pagination>` server component（Prev/Next 底線連結 + "Page X of Y"，merge 現有 searchParams，`scroll` prop 控制換頁後是否捲回頂部）。頁面：① `/explore`（保留 method/origin/roast 篩選參數；換頁回頂部）② `/journal`（Beans、Brews 兩列表獨立參數 `?beans=&brews=`，`scroll={false}` 原地換頁）③ `/u/[username]`。查詢用 `limit/offset` + `count(*)`；page 參數 clamp。首頁 `.limit(6)` 與 brew form 豆子下拉（有上限後全撈可接受）不動。
-- **Journal Brews filter**（人工測試後追加）：Brews 區加 Bean + Method 下拉（複用 explore 的 filter form 模式），用 `next/form` 的 `<Form scroll={false}>` 讓 Apply / Clear filters 也原地不動；套 filter 時 brews 回第 1 頁、beans 頁碼用 hidden input 保留；換頁連結帶著 filter。Beans 上限 10 顆單頁全覽，不需 filter。
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- 實作順序：seed → 上限 → 分頁（explore 先定模式，再 journal、`/u/[username]`）。
-- 動手寫分頁前先讀 `node_modules/next/dist/docs/` 的 searchParams / Link 指南確認 API。
-- 上限 10 豆 / 50 brews 之下，beans 列表（≤10）正常情況不會翻頁——分頁元件仍套上，靠 bulk seed 超額資料驗證。
+<!-- Additional context, constraints, or details from spec -->
 
-## 待辦提醒（承前，未做）
+### 待辦提醒（承前，未做）
 
 - **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
 - **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
+- **lint 壞掉**：`pnpm lint` 會 crash（`eslint-plugin-react` 7.37 與 ESLint 10 不相容，載入 `react/display-name` 規則即 TypeError），與功能程式無關；建議開 `chore/fix-eslint` 處理。
 
 ### 後續路線圖（2026-07-06 討論）
 
-- **梯隊 1（auth）✅ 全部完成**：① 忘記密碼 Phase 9 → ③ 修改密碼 Phase 10 → ② Google 登入 Phase 11（含 Settings 密碼區條件式 Change/Set password，已解決先前的 ⚠️ 相依）。
-- **梯隊 2**：
-  - **i18n 繁中**：實作前先讀 `node_modules/next/dist/docs/` 的 i18n 指南，不可直接套 next-intl 常規做法。
-  - **列表分頁**：目前 journal、beans、explore 是一次全撈（首頁有 `.limit(6)`），資料多會變慢；建議 cursor 或 page 分頁，每頁 20–30 筆。
-  - **資料上限**：beans / brews 目前無筆數限制（僅 AI 功能各 10 次/月）；若要防濫用設寬鬆上限即可（如每人 200 顆豆、2000 筆沖煮），屬產品決定。
-  - **Explore 回饋**：決定**只做讚、不做倒讚**（個人沖煮紀錄的分享場景，倒讚是負激勵；倒讚的排序用途此處不需要）。實作：`brew_likes` 表（`userId` + `brewId` 唯一鍵）＋ explore 卡片與詳情頁按鈕。更遠期比倒讚更好的回饋是「我也試了這個配方」或簡短留言。
+- **i18n 繁中**：實作前先讀 `node_modules/next/dist/docs/` 的 i18n 指南，不可直接套 next-intl 常規做法。
+- **Explore 回饋**：決定**只做讚、不做倒讚**（個人沖煮紀錄的分享場景，倒讚是負激勵；倒讚的排序用途此處不需要）。實作：`brew_likes` 表（`userId` + `brewId` 唯一鍵）＋ explore 卡片與詳情頁按鈕。更遠期比倒讚更好的回饋是「我也試了這個配方」或簡短留言。
+- **Journal「View all」拆頁**（可選）：若 Journal 單頁兩列表變得太長，可改為每區只顯示最近 5 筆＋獨立的 `/beans`、`/brews` 列表頁再分頁。
 
 ## History
+
+- **Phase 13 — 資料上限 + 列表分頁 + Bulk Seed** — 2026-07-06 完成，squash-merge 至 main（`d0648a0`）。① `src/lib/limits.ts`：每人 10 豆 / 50 brews，create server action insert 前 count 擋下並回友善錯誤；`/beans/new`、`/brews/new` 達上限直接顯示訊息取代表單，未達上限 header 顯示「x of N used」。② 分頁：共用 `src/components/pagination.tsx`（`PAGE_SIZE = 10`、page-based searchParams、Prev/Next + "Page X of Y"、page 參數 clamp、`scroll` prop）套用 `/explore`（保留篩選、換頁回頂）、`/journal`（`?beans=&brews=` 獨立參數、`scroll={false}` 原地換頁）、`/u/[username]`。③ Journal Brews 加 Bean + Method filter：`next/form` 的 `<Form scroll={false}>` 讓 Apply／Clear 也原地不動，套 filter 時 brews 回第 1 頁、beans 頁碼 hidden input 保留；Beans 上限 10 顆單頁全覽不做 filter。④ `src/lib/db/seed-bulk.ts` + `pnpm db:seed:bulk`：產生 25 豆 / 120 brews（`BULK_BEANS`/`BULK_BREWS` 可調）測試資料，直接 insert 刻意繞過上限；原 `pnpm db:seed` 精緻示範資料保留。`pnpm build` 通過（lint 因既有的 eslint-plugin-react 相容性問題無法跑）。
 
 - **Phase 12b — Google 使用者 username 補齊** — 2026-07-06。實測發現 Google 註冊者沒有 username → 公開頁 `/u/[username]` 失效。`auth.ts` 加 `databaseHooks.user.create.before`：建立時若無 username，就從 email local-part 產生合法且唯一的 username（`generateUniqueUsername`，符合 3–30 字、`[a-z0-9_.]`，衝突加隨機尾碼），同時填 `displayUsername`。使用者仍可在 Settings 改。**注意**：此 hook 只對「之後新建」的使用者生效；先前已建立的 Google 帳號（username 為 null）需自行到 Settings 設一個。
 
