@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 
 import { db } from "@/lib/db"
-import { beans, brews } from "@/lib/db/schema"
+import { beans, brewAdvice, brews } from "@/lib/db/schema"
 import { requireSession } from "@/lib/session"
 
 export type BrewFormState = {
@@ -190,6 +190,10 @@ export async function updateBrew(
 
   if (updated.length === 0)
     return { fieldErrors: null, formError: "Brew not found." }
+
+  // Editing the recipe/scores invalidates any cached Brew Master advice — it
+  // was generated for the old numbers. Drop it so the next ask regenerates.
+  await db.delete(brewAdvice).where(eq(brewAdvice.brewId, brewId))
 
   revalidatePath("/journal")
   revalidatePath(`/beans/${result.values.beanId}`)

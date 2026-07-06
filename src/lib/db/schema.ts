@@ -85,18 +85,44 @@ export const brews = pgTable(
   ],
 )
 
-// Per-user, per-day counter for AI bean-scans. Caps daily token spend without
-// pulling in Redis — one row per (user, day), incremented on each scan.
+// Per-user, per-month counter for AI bean-scans. Caps monthly token spend
+// without pulling in Redis — one row per (user, month), incremented on each
+// scan. `period` is the first day of the UTC month, "YYYY-MM-01".
 export const beanScanUsage = pgTable(
   "bean_scan_usage",
   {
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    day: date("day").notNull(), // UTC date, "YYYY-MM-DD"
+    period: date("period").notNull(), // first of month, "YYYY-MM-01"
     count: integer("count").notNull().default(0),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.day] })],
+  (table) => [primaryKey({ columns: [table.userId, table.period] })],
+)
+
+// One row per brew — caches the AI Brew Master's advice so re-viewing a brew
+// never re-bills the model. Regenerating overwrites the row.
+export const brewAdvice = pgTable("brew_advice", {
+  brewId: text("brew_id")
+    .primaryKey()
+    .references(() => brews.id, { onDelete: "cascade" }),
+  advice: text("advice").notNull(),
+  model: text("model"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+// Per-user, per-month counter for AI Brew Master generations. Same shape as
+// `bean_scan_usage` — bounds monthly model spend without pulling in Redis.
+export const brewAdviceUsage = pgTable(
+  "brew_advice_usage",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    period: date("period").notNull(), // first of month, "YYYY-MM-01"
+    count: integer("count").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.period] })],
 )
 
 export const beansRelations = relations(beans, ({ one, many }) => ({

@@ -137,7 +137,7 @@ function BeanScanner({
         <span className="text-small text-muted-foreground">
           {working
             ? "This can take a few seconds."
-            : `${remaining} of ${limit} scans left today`}
+            : `${remaining} of ${limit} scans left this month`}
         </span>
       </div>
 

@@ -9,9 +9,10 @@ import { db } from "@/lib/db"
 import { beanScanUsage } from "@/lib/db/schema"
 import { requireSession } from "@/lib/session"
 
-// How many photo scans a single user may run per (UTC) day. Keeps token spend
-// bounded without reaching for Redis — the counter lives in `bean_scan_usage`.
-const DAILY_SCAN_LIMIT = 20
+// How many photo scans a single user may run per (UTC) month. Keeps token
+// spend bounded without reaching for Redis — the counter lives in
+// `bean_scan_usage`.
+const MONTHLY_SCAN_LIMIT = 10
 
 // Reject anything that clearly wasn't run through the client-side compressor
 // (longest edge ~1568px, JPEG q0.8 → typically well under 1 MB of base64).
@@ -99,13 +100,14 @@ export type ScanBeanResult =
   | { ok: true; fields: BeanScanFields; remaining: number }
   | { ok: false; error: string; remaining: number }
 
-// UTC calendar day, "YYYY-MM-DD" — the granularity of the daily cap.
-function today() {
-  return new Date().toISOString().slice(0, 10)
+// First day of the current UTC month, "YYYY-MM-01" — the granularity of the
+// monthly cap.
+function currentPeriod() {
+  return new Date().toISOString().slice(0, 7) + "-01"
 }
 
-// Today's scan quota for the signed-in user. Read by the New Bean page so the
-// scanner can show remaining scans before the first attempt.
+// This month's scan quota for the signed-in user. Read by the New Bean page so
+// the scanner can show remaining scans before the first attempt.
 export async function getBeanScanQuota(): Promise<ScanQuota> {
   const session = await requireSession()
   const [usage] = await db
@@ -114,14 +116,14 @@ export async function getBeanScanQuota(): Promise<ScanQuota> {
     .where(
       and(
         eq(beanScanUsage.userId, session.user.id),
-        eq(beanScanUsage.day, today()),
+        eq(beanScanUsage.period, currentPeriod()),
       ),
     )
   const used = usage?.count ?? 0
   return {
     used,
-    remaining: Math.max(0, DAILY_SCAN_LIMIT - used),
-    limit: DAILY_SCAN_LIMIT,
+    remaining: Math.max(0, MONTHLY_SCAN_LIMIT - used),
+    limit: MONTHLY_SCAN_LIMIT,
   }
 }
 
@@ -142,7 +144,7 @@ export async function scanBeanPhoto(input: {
   const session = await requireSession()
 
   const { image, mediaType } = input
-  const day = today()
+  const period = currentPeriod()
   if (!image || typeof image !== "string" || !mediaType?.startsWith("image/")) {
     const { remaining } = await getBeanScanQuota()
     return {
@@ -160,21 +162,21 @@ export async function scanBeanPhoto(input: {
     }
   }
 
-  // Rate limit: one row per user per UTC day, checked before we spend a token.
+  // Rate limit: one row per user per UTC month, checked before we spend a token.
   const [usage] = await db
     .select({ count: beanScanUsage.count })
     .from(beanScanUsage)
     .where(
       and(
         eq(beanScanUsage.userId, session.user.id),
-        eq(beanScanUsage.day, day),
+        eq(beanScanUsage.period, period),
       ),
     )
 
-  if ((usage?.count ?? 0) >= DAILY_SCAN_LIMIT) {
+  if ((usage?.count ?? 0) >= MONTHLY_SCAN_LIMIT) {
     return {
       ok: false,
-      error: `Daily scan limit reached (${DAILY_SCAN_LIMIT}/day). Enter the bean details manually, or try again tomorrow.`,
+      error: `Monthly scan limit reached (${MONTHLY_SCAN_LIMIT}/month). Enter the bean details manually, or try again next month.`,
       remaining: 0,
     }
   }
@@ -184,13 +186,13 @@ export async function scanBeanPhoto(input: {
   // The returned count is the new value, so remaining is derived from it.
   const [updated] = await db
     .insert(beanScanUsage)
-    .values({ userId: session.user.id, day, count: 1 })
+    .values({ userId: session.user.id, period, count: 1 })
     .onConflictDoUpdate({
-      target: [beanScanUsage.userId, beanScanUsage.day],
+      target: [beanScanUsage.userId, beanScanUsage.period],
       set: { count: sql`${beanScanUsage.count} + 1` },
     })
     .returning({ count: beanScanUsage.count })
-  const remaining = Math.max(0, DAILY_SCAN_LIMIT - (updated?.count ?? 0))
+  const remaining = Math.max(0, MONTHLY_SCAN_LIMIT - (updated?.count ?? 0))
 
   try {
     const { object } = await generateObject({

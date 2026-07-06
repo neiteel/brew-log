@@ -12,6 +12,9 @@ import { brews } from "@/lib/db/schema"
 import { formatDate, formatTime } from "@/lib/format"
 import { getSession } from "@/lib/session"
 
+import { getBrewAdviceQuota, getCachedBrewAdvice } from "../advice"
+import { BrewMaster } from "./brew-master"
+
 export const metadata = { title: "Brew" }
 
 function ratio(dose: number | null, out: number | null) {
@@ -48,6 +51,20 @@ export default async function BrewPage({
     brew.tasteAcidity != null ||
     brew.tasteBitterness != null ||
     brew.tasteBody != null
+
+  // Brew Master gate: enabled once the brew is fully reviewed (rating + all
+  // five taste dimensions). Only owners get the AI section; pull the cached
+  // advice and today's quota up front so the client renders without a round-trip.
+  const reviewed =
+    brew.rating != null &&
+    brew.tasteAroma != null &&
+    brew.tasteSweetness != null &&
+    brew.tasteAcidity != null &&
+    brew.tasteBitterness != null &&
+    brew.tasteBody != null
+  const [brewAdvice, adviceQuota] = isOwner
+    ? await Promise.all([getCachedBrewAdvice(brew.id), getBrewAdviceQuota()])
+    : [null, null]
 
   return (
     <PageShell>
@@ -203,6 +220,19 @@ export default async function BrewPage({
           </div>
         ) : null}
       </section>
+
+      {isOwner && adviceQuota ? (
+        <section className="space-y-8 md:space-y-10">
+          <h2 className="text-h2 font-medium">Brew Master</h2>
+          <BrewMaster
+            brewId={brew.id}
+            ready={reviewed}
+            initialAdvice={brewAdvice}
+            initialRemaining={adviceQuota.remaining}
+            limit={adviceQuota.limit}
+          />
+        </section>
+      ) : null}
     </PageShell>
   )
 }
