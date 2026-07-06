@@ -1,32 +1,57 @@
-# Current Feature: Phase 8 — AI Brew Master（詢問 AI 沖煮導師）
+# Current Feature: Phase 12 — Email 驗證（Email Verification + 安全帳號連結）
 
 ## Status
 
-Completed
+Completed (2026-07-06)
 
-## Goals
+## 起因
 
-- Brew 詳情頁（自己的 brew）新增「Ask the Brew Master」區塊，只有在**評分 + 五項 TasteScale 全部填完**時才啟用（未填完顯示提示，不出現按鈕）。
-- 點擊後由 AI 導師針對這一杯給出**下一步沖煮調整建議**：輸入包含本次沖煮參數、豆子背景（含 `flavor_notes` 作為烘豆商預期風味）、以及**同一支豆子的歷史沖煮**（參數＋風味＋評分）以供比較。
-- 建議**存 DB（一杯一列）避免重複計費**；可「Regenerate」重新產生（覆寫、計入每日額度）。
-- 每人每 UTC 日設生成上限（沿用 Phase 7 的 DB 計數模式，不引入 Redis）。
-- **不做 AI 生成 Notes**（避免 AI 分析 AI 的循環）；AI 只給沖煮建議，不回寫 brew 的欄位。
+Phase 11 做完後實測「先 email 註冊 → 再用同 email Google 登入」噴 `account_not_linked`。根因：Better Auth 連結到已存在帳號時，除了 `trustedProviders`（放行 provider 端）外，還要求**本地帳號 `emailVerified=true`**（`accountLinking.requireLocalEmailVerified` 預設 true）；本專案原本沒有 email 驗證，所有 email/密碼使用者都是未驗證，故必噴錯。
+
+一度用 `requireLocalEmailVerified: false` 繞過，但那會開**帳號預劫持（pre-hijacking）**漏洞：攻擊者先用你的 email＋他的密碼註冊（未驗證），你之後 Google 登入 → 合併 → 攻擊者密碼仍在。故改為正解：加 email 驗證。
+
+## Goals（採「不擋登入」）
+
+- `auth.ts` 加 `emailVerification`：`sendOnSignUp: true`（註冊自動寄驗證信）、`autoSignInAfterVerification: true`（點連結後自動登入）、`sendVerificationEmail` 透過 Resend 寄 `src/lib/emails/verify-email.ts`。
+- **不開** `emailAndPassword.requireEmailVerification`（未驗證仍可登入用 app；驗證只設 `emailVerified` 旗標、解鎖 Google 連結）。理由：dev 登入帳號（假信箱收不到信）＋現有未驗證帳號不被鎖死。
+- `requireLocalEmailVerified` **改回安全預設**（移除 Phase 11 臨時加的 `false`）。
+- 驗證信連結：Better Auth 走 `/api/auth/verify-email?token=…&callbackURL=…`，驗完導回 callbackURL。signup 傳 `callbackURL: origin+"/journal"`。
+- **把 `account_not_linked` 變友善**：`signIn.social` 加 `errorCallbackURL: origin+"/login"`；登入頁（server component 讀 `searchParams.error`）對應訊息「這 email 已有密碼，請用密碼登入；驗證 email 後即可用 Google」。
+
+## 待辦提醒（未做）
+
+- **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
+- **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
+- （已做）Settings 加了「未驗證提示 + 重寄驗證信」：Email row 顯示 Verified/Not verified；未驗證時顯示 `ResendVerification`（client，`authClient.sendVerificationEmail({ email, callbackURL: origin+"/journal" })`）。最佳實踐＝自動寄（主）＋重寄鈕（安全網）並存。
 
 ## Notes
 
-- **模型 / SDK**：沿用 Phase 7 的 Vercel AI SDK（`ai` v7 + `@ai-sdk/google`）＋ `gemini-3.5-flash`；用 `generateText`（散文建議，非結構化）。`thinkingLevel: "minimal"`——給建議非精準抽取任務，用 minimal 換較低延遲（Phase 7 讀標籤才需避開 minimal）。
-- **導師回覆語言**：跟隨使用者 **taster notes 的語言**（主訊號，system prompt 指示）；notes 為空時 fallback 用請求的 `Accept-Language`（`preferredLocale()` 讀 header → `Intl.DisplayNames` 轉可讀語言名）、再退回英文。目的：其他國家使用者即使 UI 是英文也能拿到母語建議。此區塊的**介面文案**仍維持英文（與現有 UI 一致），只有 AI 生成內容跟隨語言。
-- **快取失效（策略 A）**：advice 以 `brewId` 快取；**編輯該 brew 時在 `updateBrew` 刪除快取列**（參數變了舊建議即失效）。豆子背景變動或新增同豆沖煮不自動失效，交給手動 Regenerate。
-- **資料表**：
-  - `brew_advice`：`brewId`（PK, FK→brews cascade）、`advice` text、`model` text、`createdAt`。一杯一列 = 快取。
-  - `brew_advice_usage`：`(userId, period)` PK、`count`——每月生成上限計數，仿 `bean_scan_usage`。
-- **額度**：豆袋掃描與 Brew Master **各自每月 10 次**（原每日 20，2026-07-06 改）。計數欄位由 `day`（每日）改為 `period`（當月 1 號 "YYYY-MM-01"）；兩張 usage 表同步。測試重置：Drizzle Studio 刪掉該 `(user, period)` 那列即可。
-- **Server action**（`src/app/(app)/brews/advice.ts`）：`askBrewMaster(brewId, { force })`——`requireSession` → 驗證擁有者 → gate 檢查（rating + 5 taste 非 null）→ 非 force 時先回快取 → 檢查並佔用每日額度 → 撈 bean + 同豆歷史 → `generateText` → 寫入 `brew_advice` → 回傳。
-- **頁面**：brew 詳情（server component）直接查快取 advice、gate 狀態、剩餘額度，傳給 client `BrewMaster` 元件（按鈕 / pending / error / 顯示建議 / regenerate）。
-- 動工前先讀 `node_modules/next/dist/docs/` 對應章節（Server Actions）——已讀 `01-getting-started/07-mutating-data.md`。
-- commit 前先詢問使用者。
+### Better Auth 背景知識（2026-07-06 討論）
+
+- user 與登入方式分離：一個 `user` 可掛多個 `account`。Google 註冊者只有 `providerId: "google"` 的 account，**沒有 credential account**，用 `signIn.email` 會得到通用的 `INVALID_EMAIL_OR_PASSWORD`（刻意不透露帳號存在）。
+- OAuth 使用者補密碼兩條路：(1) 走忘記密碼流程（官方推薦，reset 時自動建 credential account）＝本 feature；(2) server-only `auth.api.setPassword`（可做在帳號設定頁）。
+- Account linking：email+密碼使用者之後用同 email 的 Google 登入，設定 `account.accountLinking: { enabled: true, trustedProviders: ["google"] }` 即可連到同一 user。
+
+### 後續路線圖（2026-07-06 討論）
+
+- **梯隊 1（auth）✅ 全部完成**：① 忘記密碼 Phase 9 → ③ 修改密碼 Phase 10 → ② Google 登入 Phase 11（含 Settings 密碼區條件式 Change/Set password，已解決先前的 ⚠️ 相依）。
+- **梯隊 2**：
+  - **i18n 繁中**：實作前先讀 `node_modules/next/dist/docs/` 的 i18n 指南，不可直接套 next-intl 常規做法。
+  - **列表分頁**：目前 journal、beans、explore 是一次全撈（首頁有 `.limit(6)`），資料多會變慢；建議 cursor 或 page 分頁，每頁 20–30 筆。
+  - **資料上限**：beans / brews 目前無筆數限制（僅 AI 功能各 10 次/月）；若要防濫用設寬鬆上限即可（如每人 200 顆豆、2000 筆沖煮），屬產品決定。
+  - **Explore 回饋**：決定**只做讚、不做倒讚**（個人沖煮紀錄的分享場景，倒讚是負激勵；倒讚的排序用途此處不需要）。實作：`brew_likes` 表（`userId` + `brewId` 唯一鍵）＋ explore 卡片與詳情頁按鈕。更遠期比倒讚更好的回饋是「我也試了這個配方」或簡短留言。
 
 ## History
+
+- **Phase 12b — Google 使用者 username 補齊** — 2026-07-06。實測發現 Google 註冊者沒有 username → 公開頁 `/u/[username]` 失效。`auth.ts` 加 `databaseHooks.user.create.before`：建立時若無 username，就從 email local-part 產生合法且唯一的 username（`generateUniqueUsername`，符合 3–30 字、`[a-z0-9_.]`，衝突加隨機尾碼），同時填 `displayUsername`。使用者仍可在 Settings 改。**注意**：此 hook 只對「之後新建」的使用者生效；先前已建立的 Google 帳號（username 為 null）需自行到 Settings 設一個。
+
+- **Phase 12 — Email 驗證（Email Verification + 安全帳號連結）** — 2026-07-06 完成。修 Phase 11 實測到的 `account_not_linked`（同 email 先密碼註冊、再 Google 登入被擋）。`auth.ts` 加 `emailVerification`（`sendOnSignUp` + `autoSignInAfterVerification` + Resend 寄 `verify-email.ts`），並把 accountLinking 的 `requireLocalEmailVerified` 從 Phase 11 臨時的 `false` 改回安全預設（擋帳號預劫持）。不開 `requireEmailVerification`（不擋登入，避免鎖死 dev 帳號與現有未驗證帳號）。signup 傳 `callbackURL=/journal`；`signIn.social` 加 `errorCallbackURL=/login`，登入頁讀 `?error=` 顯示友善訊息（`account_not_linked` → 引導用密碼登入、驗證後再用 Google）。`pnpm build` 通過。
+
+- **Phase 11 — Google 登入（Social Sign-in + Account Linking）** — 2026-07-06 完成。`auth.ts` 加 `socialProviders.google`（clientId/secret 走 env）與 `account.accountLinking: { enabled: true, trustedProviders: ["google"] }`。新增共用 `src/components/social-auth.tsx`（「or」分隔線＋帶 Google G logo 的「Continue with Google」按鈕，`authClient.signIn.social({ provider: "google", callbackURL: "/journal" })`），放進登入頁與註冊頁。**連帶改 Settings 密碼區為條件式**：settings（server component）用 `auth.api.listUserAccounts` 查有無 `providerId:"credential"`——有→`ChangePasswordForm`；沒有（Google-only）→新增 `SetPasswordForm`（呼叫 `set-password-action.ts` 這個 server action → server-only `auth.api.setPassword({ body:{ newPassword } })`，成功即建立 credential account，`router.refresh()` 後改顯示 Change 表單）。`account` 表既有 OAuth 欄位（accessToken/idToken 等），免 migration。GCP redirect URI 需含 `http://localhost:3000/api/auth/callback/google`。`pnpm build` 通過。
+
+- **Phase 10 — 修改密碼（Change Password，登入中）** — 2026-07-06 完成。Settings 頁 Profile 與 Session 之間新增「Password」section；`change-password-form.tsx`（client）用 `authClient.changePassword({ currentPassword, newPassword, revokeOtherSessions: true })`，client 端驗新密碼＝確認、`minLength={8}`，成功後 `form.reset()` 並顯示「已更新、其他裝置已登出」。與 Phase 9（登出救援）互補；A 案假設每人都有密碼。**待辦**：Google 登入上線後須改條件式 UI（見上方路線圖 ⚠️）。`pnpm build` 通過。
+
+- **Phase 9 — 忘記密碼（Forgot / Reset Password）** — 2026-07-06 完成。安裝 `resend`；新增 `src/lib/email.ts`（`sendEmail`，SDK 回 `{data,error}` 不 throw，無 `RESEND_API_KEY` 時把信印到 server console 供本地測試）與 `src/lib/emails/reset-password.ts`（inline HTML editorial 樣式信）。`auth.ts` 的 `emailAndPassword` 加上 `sendResetPassword`（寄 Resend 信）與 `revokeSessionsOnPasswordReset: true`。新增 `/forgot-password`（`authClient.requestPasswordReset({ email, redirectTo: origin+"/reset-password" })`，不論帳號存在與否都顯示相同成功訊息避免帳號探測）與 `/reset-password`（Better Auth 驗 token 後導回本頁帶 `?token=`／`?error=INVALID_TOKEN`；表單新密碼＋確認→`authClient.resetPassword`→導回 `/login`；token 失效顯示重新索取連結）。登入頁密碼欄下方加「Forgot password?」連結。此流程即未來 Google OAuth 使用者補設密碼的官方路徑。寄件者 `.env` 用 `EMAIL_FROM=onboarding@resend.dev`（未驗證網域僅能寄到 Resend 帳號信箱）。`pnpm build` 通過。
 
 - **Phase 8 — AI Brew Master（詢問 AI 沖煮導師）** — 2026-07-06 完成。Brew 詳情頁在評分＋五項 TasteScale 填完後新增「Ask the Brew Master」區塊；`askBrewMaster` server action 彙整沖煮參數、豆子背景（含 `flavor_notes`）與同豆歷史沖煮，交給 `gemini-3.5-flash`（`generateText`, `thinkingLevel: "minimal"`）產生沖煮建議，跟隨 taster notes 語言（fallback `Accept-Language`）；建議存 `brew_advice`（按 brewId 快取，編輯 brew 時失效）；`brew_advice_usage` 每人每月 10 次上限，並將豆袋掃描額度同步由每日 20 次改為每月 10 次（欄位 `day` → `period`）。
 - **Phase 7 — AI 智慧填單（拍豆袋照片自動建豆）** — 2026-07-06 完成。`/beans/new` 掃描豆袋照片 → `gemini-3.5-flash`（`generateObject` + nullable schema、`thinkingLevel: "low"`）辨識 → 預填表單（human in the loop，照片不落地）；client canvas 壓縮、iPhone 上傳／桌面拖拉、`bean_scan_usage` 每日 20 次上限＋剩餘額度顯示。

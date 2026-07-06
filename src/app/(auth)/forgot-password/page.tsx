@@ -1,19 +1,16 @@
 import Link from "next/link"
 
-import { SocialAuth } from "@/components/social-auth"
+import { ForgotPasswordForm } from "./forgot-password-form"
 
-import { SignupForm } from "./signup-form"
+export const metadata = { title: "Forgot password" }
 
-export const metadata = { title: "Sign up" }
-
-export default function SignupPage() {
+export default function ForgotPasswordPage() {
   return (
     <div className="space-y-10">
-      <h1 className="text-h1 font-medium">Sign up</h1>
-      <SignupForm />
-      <SocialAuth />
+      <h1 className="text-h1 font-medium">Forgot password</h1>
+      <ForgotPasswordForm />
       <p className="text-body text-muted-foreground">
-        Already have an account?{" "}
+        Remembered it?{" "}
         <Link
           href="/login"
           className="text-foreground hover:text-muted-foreground underline underline-offset-4"

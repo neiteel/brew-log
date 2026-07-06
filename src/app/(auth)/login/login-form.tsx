@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { TextButton } from "@/components/text-button"
@@ -54,6 +55,14 @@ function LoginForm({
         defaultValue={defaultPassword}
         required
       />
+      <p className="text-body text-muted-foreground -mt-4">
+        <Link
+          href="/forgot-password"
+          className="text-foreground hover:text-muted-foreground underline underline-offset-4"
+        >
+          Forgot password?
+        </Link>
+      </p>
       {error ? <p className="text-body text-destructive">{error}</p> : null}
       <TextButton type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}

@@ -10,8 +10,8 @@ const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: {
-    default: "Brew Journal",
-    template: "%s — Brew Journal",
+    default: "Brew.log",
+    template: "%s — Brew.log",
   },
   description:
     "A coffee brewing journal — beans, recipes and tasting notes, shared or private.",
