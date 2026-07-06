@@ -33,7 +33,7 @@ export type BrewAdviceResult =
 // First day of the current UTC month, "YYYY-MM-01" — the granularity of the
 // monthly cap.
 function currentPeriod() {
-  return new Date().toISOString().slice(0, 7) + "-01"
+  return `${new Date().toISOString().slice(0, 7)}-01`
 }
 
 // The user's preferred language, as a human-readable name for the prompt's

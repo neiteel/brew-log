@@ -37,8 +37,8 @@ export default async function LandingPage() {
           A journal for beans, recipes and tasting notes.
         </h1>
         <p className="text-body text-muted-foreground max-w-sm">
-          Log every bean and brew, dial in your recipes, and share what's worth
-          sharing.
+          Log every bean and brew, dial in your recipes, and share what&apos;s
+          worth sharing.
         </p>
         <div className="text-body flex items-center gap-8">
           <Link

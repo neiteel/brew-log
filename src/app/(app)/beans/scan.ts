@@ -103,7 +103,7 @@ export type ScanBeanResult =
 // First day of the current UTC month, "YYYY-MM-01" — the granularity of the
 // monthly cap.
 function currentPeriod() {
-  return new Date().toISOString().slice(0, 7) + "-01"
+  return `${new Date().toISOString().slice(0, 7)}-01`
 }
 
 // This month's scan quota for the signed-in user. Read by the New Bean page so
