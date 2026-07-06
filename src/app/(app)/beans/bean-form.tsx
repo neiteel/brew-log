@@ -1,6 +1,7 @@
 "use client"
 
 import type { beans } from "@/lib/db/schema"
+import type { Messages } from "@/lib/i18n"
 import type { Route } from "next"
 import type { BeanFormState } from "./actions"
 import type { BeanScanFields } from "./scan"
@@ -109,11 +110,14 @@ function BeanForm<T extends string>({
   bean,
   prefill,
   cancelHref,
+  t,
 }: {
   action: (prev: BeanFormState, formData: FormData) => Promise<BeanFormState>
   bean?: Bean
   prefill?: BeanScanFields | null
   cancelHref: Route<T>
+  /** Only the form slice — the strings this form actually renders. */
+  t: Messages["form"]
 }) {
   const [state, formAction, pending] = useActionState(action, {
     fieldErrors: null,
@@ -128,9 +132,9 @@ function BeanForm<T extends string>({
 
   return (
     <form action={formAction} className="space-y-10 md:space-y-12">
-      <Section label="Identity">
+      <Section label={t.sectionIdentity}>
         <TextField
-          label="Name"
+          label={t.name}
           name="name"
           defaultValue={initial("name")}
           placeholder="Ibis"
@@ -139,7 +143,7 @@ function BeanForm<T extends string>({
           className="md:col-span-4"
         />
         <TextField
-          label="Roastery"
+          label={t.roastery}
           name="roastery"
           defaultValue={initial("roastery")}
           placeholder="Scarlett Coffee Roastery"
@@ -148,7 +152,7 @@ function BeanForm<T extends string>({
           className="md:col-span-4"
         />
         <TextField
-          label="Roaster location"
+          label={t.roasterLocation}
           name="roasteryCountry"
           defaultValue={initial("roasteryCountry")}
           placeholder="United Kingdom"
@@ -157,9 +161,9 @@ function BeanForm<T extends string>({
         />
       </Section>
 
-      <Section label="Origin">
+      <Section label={t.sectionOrigin}>
         <TextField
-          label="Origin"
+          label={t.origin}
           name="originCountry"
           defaultValue={initial("originCountry")}
           placeholder="Brazil"
@@ -167,28 +171,28 @@ function BeanForm<T extends string>({
           className="md:col-span-4"
         />
         <TextField
-          label="Region"
+          label={t.region}
           name="region"
           defaultValue={initial("region")}
           placeholder="Sul de Minas"
           className="md:col-span-4"
         />
         <TextField
-          label="Altitude"
+          label={t.altitude}
           name="altitude"
           defaultValue={initial("altitude")}
           placeholder="1,150–1,250 m"
           className="md:col-span-4"
         />
         <TextField
-          label="Varietals"
+          label={t.varietals}
           name="varietals"
           defaultValue={initial("varietals")}
           placeholder="Red Catuaí, Yellow Catuaí"
           className="md:col-span-6"
         />
         <TextField
-          label="Process"
+          label={t.process}
           name="process"
           defaultValue={initial("process")}
           placeholder="Natural"
@@ -197,16 +201,16 @@ function BeanForm<T extends string>({
         />
       </Section>
 
-      <Section label="Roast">
+      <Section label={t.sectionRoast}>
         <RadioField
-          label="Roast level"
+          label={t.roastLevel}
           name="roastLevel"
           defaultValue={prefill?.roastLevel ?? bean?.roastLevel ?? "Light"}
           options={ROAST_LEVELS}
           className="md:col-span-12"
         />
         <TextField
-          label="Roast date"
+          label={t.roastDate}
           name="roastDate"
           type="date"
           defaultValue={initial("roastDate")}
@@ -214,37 +218,37 @@ function BeanForm<T extends string>({
           className="md:col-span-4"
         />
         <TextField
-          label="Cupping score"
+          label={t.cuppingScore}
           name="cuppingScore"
           inputMode="decimal"
           defaultValue={initial("cuppingScore")}
           placeholder="86.5"
-          hint="0–100"
+          hint={t.cuppingHint}
           error={fieldError("cuppingScore")}
           className="md:col-span-4"
         />
       </Section>
 
-      <Section label="Purchase">
+      <Section label={t.sectionPurchase}>
         <TextField
-          label="Price"
+          label={t.price}
           name="price"
           defaultValue={bean?.price ?? ""}
           placeholder="£8.50 / 225 g"
           className="md:col-span-4"
         />
         <TextField
-          label="Weight"
+          label={t.weight}
           name="weightG"
           inputMode="numeric"
           defaultValue={initial("weightG")}
           placeholder="225"
-          hint="grams"
+          hint={t.weightHint}
           error={fieldError("weightG")}
           className="md:col-span-4"
         />
         <TextField
-          label="Product URL"
+          label={t.productUrl}
           name="productUrl"
           inputMode="url"
           defaultValue={bean?.productUrl ?? ""}
@@ -254,9 +258,9 @@ function BeanForm<T extends string>({
         />
       </Section>
 
-      <Section label="Notes">
+      <Section label={t.sectionNotes}>
         <TextAreaField
-          label="Flavor notes"
+          label={t.flavorNotes}
           name="flavorNotes"
           defaultValue={initial("flavorNotes")}
           placeholder="Almond, Raisins, Strawberries"
@@ -264,7 +268,7 @@ function BeanForm<T extends string>({
           className="md:col-span-12"
         />
         <TextAreaField
-          label="More info"
+          label={t.moreInfo}
           name="moreInfo"
           defaultValue={bean?.moreInfo ?? ""}
           placeholder="Story, lot number, anything else."
@@ -275,19 +279,17 @@ function BeanForm<T extends string>({
       {state.formError ? (
         <p className="text-body text-destructive">{state.formError}</p>
       ) : state.fieldErrors ? (
-        <p className="text-body text-destructive">
-          Please fix the highlighted fields.
-        </p>
+        <p className="text-body text-destructive">{t.fixErrors}</p>
       ) : null}
       <div className="text-body flex items-center gap-8">
         <TextButton type="submit" disabled={pending}>
-          {pending ? "Saving…" : bean ? "Save changes" : "Save bean"}
+          {pending ? t.saving : bean ? t.saveChanges : t.saveBean}
         </TextButton>
         <Link
           href={cancelHref}
           className="text-muted-foreground hover:text-foreground underline underline-offset-4"
         >
-          Cancel
+          {t.cancel}
         </Link>
       </div>
     </form>

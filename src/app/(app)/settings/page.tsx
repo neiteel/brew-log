@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth"
 import { requireSession } from "@/lib/session"
 
 import { ChangePasswordForm } from "./change-password-form"
+import { LanguageForm } from "./language-form"
 import { ResendVerification } from "./resend-verification"
 import { SetPasswordForm } from "./set-password-form"
 import { SignOutButton } from "./sign-out-button"
@@ -46,6 +47,11 @@ export default async function SettingsPage() {
         </div>
         {!user.emailVerified ? <ResendVerification email={user.email} /> : null}
         <UsernameForm current={user.username ?? ""} />
+      </section>
+
+      <section className="space-y-8 md:space-y-10">
+        <h2 className="text-h2 font-medium">Language</h2>
+        <LanguageForm current={user.locale} />
       </section>
 
       <section className="space-y-8 md:space-y-10">

@@ -8,22 +8,32 @@ export type TasteProfile = {
   body: number
 }
 
+// The five dimension labels, already localized by the caller.
+export type TasteLabels = Record<keyof TasteProfile, string>
+
 const SCALE_MAX = 10
 
-const ATTRIBUTES: { key: keyof TasteProfile; label: string }[] = [
-  { key: "aroma", label: "Aroma" },
-  { key: "sweetness", label: "Sweetness" },
-  { key: "acidity", label: "Acidity" },
-  { key: "bitterness", label: "Bitterness" },
-  { key: "body", label: "Body" },
+const ORDER: (keyof TasteProfile)[] = [
+  "aroma",
+  "sweetness",
+  "acidity",
+  "bitterness",
+  "body",
 ]
 
 // Segmented bar, 0–10 — same scale as the overall rating. Filled segments
 // are black, empty ones keep a hairline outline, so integers stay countable.
-function TasteScale({ profile }: { profile: TasteProfile }) {
+function TasteScale({
+  profile,
+  labels,
+}: {
+  profile: TasteProfile
+  labels: TasteLabels
+}) {
   return (
     <div>
-      {ATTRIBUTES.map(({ key, label }) => {
+      {ORDER.map((key) => {
+        const label = labels[key]
         const score = profile[key]
         return (
           <div

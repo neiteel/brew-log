@@ -2,14 +2,22 @@
 
 import { deleteBean } from "../../actions"
 
-function DeleteBeanButton({ beanId }: { beanId: string }) {
+function DeleteBeanButton({
+  beanId,
+  label,
+  confirm,
+}: {
+  beanId: string
+  label: string
+  confirm: string
+}) {
   const action = deleteBean.bind(null, beanId)
 
   return (
     <form
       action={action}
       onSubmit={(event) => {
-        if (!window.confirm("Delete this bean and all of its brews?")) {
+        if (!window.confirm(confirm)) {
           event.preventDefault()
         }
       }}
@@ -18,7 +26,7 @@ function DeleteBeanButton({ beanId }: { beanId: string }) {
         type="submit"
         className="text-body text-destructive underline underline-offset-4 hover:opacity-70"
       >
-        Delete bean
+        {label}
       </button>
     </form>
   )

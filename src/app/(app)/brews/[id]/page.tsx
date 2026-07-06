@@ -10,6 +10,7 @@ import { TasteScale } from "@/components/taste-scale"
 import { db } from "@/lib/db"
 import { brews } from "@/lib/db/schema"
 import { formatDate, formatTime } from "@/lib/format"
+import { getDictionary } from "@/lib/i18n"
 import { getRatingSummary } from "@/lib/ratings"
 import { getSession } from "@/lib/session"
 
@@ -31,6 +32,8 @@ export default async function BrewPage({
   params: Promise<{ id: string }>
 }) {
   const session = await getSession()
+  // Localize fixed UI to the viewer's own language (default "en" when logged out).
+  const dict = getDictionary(session?.user.locale)
   const { id } = await params
 
   const brew = await db.query.brews.findFirst({
@@ -79,8 +82,10 @@ export default async function BrewPage({
       <PageHeader
         kicker={
           <>
-            Brew — {formatDate(brew.brewedAt)}
-            {isOwner ? ` · ${brew.isPublic ? "Public" : "Private"}` : null}
+            {dict.brew.kicker} — {formatDate(brew.brewedAt)}
+            {isOwner
+              ? ` · ${brew.isPublic ? dict.brew.public : dict.brew.private}`
+              : null}
             {!isOwner && brew.user.username ? (
               <>
                 {" · "}
@@ -106,11 +111,11 @@ export default async function BrewPage({
       />
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Bean</h2>
+        <h2 className="text-h2 font-medium">{dict.bean.heading}</h2>
         <div>
           {brew.bean.originCountry ? (
             <Row
-              label="Origin"
+              label={dict.bean.origin}
               value={brew.bean.originCountry}
               detail={
                 [brew.bean.region, brew.bean.altitude]
@@ -121,17 +126,17 @@ export default async function BrewPage({
           ) : null}
           {brew.bean.process || brew.bean.roastLevel ? (
             <Row
-              label="Process"
+              label={dict.bean.process}
               value={brew.bean.process ?? "—"}
               detail={
                 brew.bean.roastLevel
-                  ? `${brew.bean.roastLevel} roast`
+                  ? `${brew.bean.roastLevel} ${dict.bean.roastSuffix}`
                   : undefined
               }
             />
           ) : null}
           {brew.bean.flavorNotes ? (
-            <Row label="Flavor" value={brew.bean.flavorNotes} />
+            <Row label={dict.bean.flavor} value={brew.bean.flavorNotes} />
           ) : null}
         </div>
         {isOwner ? (
@@ -140,34 +145,34 @@ export default async function BrewPage({
               href={`/beans/${brew.bean.id}`}
               className="hover:text-muted-foreground font-medium underline underline-offset-4"
             >
-              View bean
+              {dict.brew.viewBean}
             </Link>
           </div>
         ) : null}
       </section>
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Recipe</h2>
+        <h2 className="text-h2 font-medium">{dict.brew.recipe}</h2>
         <div>
-          <Row label="Method" value={brew.method} />
+          <Row label={dict.brew.method} value={brew.method} />
           {brew.coffeeG != null ? (
             <Row
-              label="Dose"
+              label={dict.brew.dose}
               value={`${brew.coffeeG} g`}
-              detail={brewRatio ? `Ratio ${brewRatio}` : undefined}
+              detail={brewRatio ? `${dict.brew.ratio} ${brewRatio}` : undefined}
             />
           ) : null}
           {isEspresso
             ? brew.brewWeightG != null && (
                 <Row
-                  label="Yield"
+                  label={dict.brew.yield}
                   value={`${brew.brewWeightG} g`}
                   detail={brew.tds != null ? `TDS ${brew.tds} %` : undefined}
                 />
               )
             : brew.waterG != null && (
                 <Row
-                  label="Water"
+                  label={dict.brew.water}
                   value={`${brew.waterG} g`}
                   detail={
                     brew.temperatureC != null
@@ -177,17 +182,23 @@ export default async function BrewPage({
                 />
               )}
           {isEspresso && brew.temperatureC != null ? (
-            <Row label="Temperature" value={`${brew.temperatureC} °C`} />
+            <Row
+              label={dict.brew.temperature}
+              value={`${brew.temperatureC} °C`}
+            />
           ) : null}
           {isEspresso && brew.extractionYield != null ? (
-            <Row label="Extraction" value={`${brew.extractionYield} %`} />
+            <Row
+              label={dict.brew.extraction}
+              value={`${brew.extractionYield} %`}
+            />
           ) : null}
           {brew.timeSeconds != null ? (
-            <Row label="Time" value={formatTime(brew.timeSeconds)} />
+            <Row label={dict.brew.time} value={formatTime(brew.timeSeconds)} />
           ) : null}
           {brew.grinder || brew.grindSetting ? (
             <Row
-              label="Grinder"
+              label={dict.brew.grinder}
               value={brew.grinder ?? "—"}
               detail={brew.grindSetting ?? undefined}
             />
@@ -196,7 +207,7 @@ export default async function BrewPage({
       </section>
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Taste</h2>
+        <h2 className="text-h2 font-medium">{dict.taste.heading}</h2>
         {brew.rating != null ? (
           <p className="text-display font-medium">
             {brew.rating}
@@ -213,9 +224,18 @@ export default async function BrewPage({
                 bitterness: brew.tasteBitterness ?? 0,
                 body: brew.tasteBody ?? 0,
               }}
+              labels={{
+                aroma: dict.taste.aroma,
+                sweetness: dict.taste.sweetness,
+                acidity: dict.taste.acidity,
+                bitterness: dict.taste.bitterness,
+                body: dict.taste.body,
+              }}
             />
           ) : null}
-          {brew.notes ? <Row label="Notes" value={brew.notes} /> : null}
+          {brew.notes ? (
+            <Row label={dict.taste.notes} value={brew.notes} />
+          ) : null}
         </div>
         {isOwner ? (
           <div className="text-body">
@@ -223,7 +243,7 @@ export default async function BrewPage({
               href={`/brews/${brew.id}/edit`}
               className="hover:text-muted-foreground font-medium underline underline-offset-4"
             >
-              Edit brew
+              {dict.brew.editBrew}
             </Link>
           </div>
         ) : null}
@@ -231,13 +251,14 @@ export default async function BrewPage({
 
       {ratingSummary ? (
         <section className="space-y-8 md:space-y-10">
-          <h2 className="text-h2 font-medium">Community</h2>
+          <h2 className="text-h2 font-medium">{dict.community.heading}</h2>
           <StarRating
             brewId={brew.id}
             average={ratingSummary.average}
             count={ratingSummary.count}
             mine={ratingSummary.mine}
             canRate={Boolean(session) && !isOwner}
+            labels={dict.community}
           />
         </section>
       ) : null}

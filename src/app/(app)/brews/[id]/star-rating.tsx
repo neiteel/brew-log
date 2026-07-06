@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
@@ -13,6 +15,7 @@ export function StarRating({
   count,
   mine,
   canRate,
+  labels,
 }: {
   brewId: string
   average: number | null
@@ -20,6 +23,8 @@ export function StarRating({
   mine: number | null
   /** True only for logged-in members who don't own this brew. */
   canRate: boolean
+  /** Localized community-section strings. */
+  labels: Messages["community"]
 }) {
   const router = useRouter()
   const [optimistic, setOptimistic] = useState<number | null>(mine)
@@ -65,12 +70,13 @@ export function StarRating({
             <StarRow value={average} />
             <span className="text-body font-medium">{average.toFixed(1)}</span>
             <span className="text-small text-muted-foreground">
-              {count} {count === 1 ? "rating" : "ratings"}
+              {count}{" "}
+              {count === 1 ? labels.ratingUnit : labels.ratingUnitPlural}
             </span>
           </>
         ) : (
           <span className="text-body text-muted-foreground">
-            No ratings yet
+            {labels.noRatings}
           </span>
         )}
       </div>
@@ -78,7 +84,7 @@ export function StarRating({
       {canRate ? (
         <div className="space-y-2">
           <p className="text-small text-muted-foreground">
-            {optimistic ? "Your rating" : "Rate this brew"}
+            {optimistic ? labels.yourRating : labels.rateThis}
           </p>
           <div className="flex items-center gap-3">
             <span
@@ -92,7 +98,7 @@ export function StarRating({
                   disabled={pending}
                   onClick={() => submit(n)}
                   onMouseEnter={() => setHover(n)}
-                  aria-label={`${n} star${n === 1 ? "" : "s"}`}
+                  aria-label={`${n} ${n === 1 ? labels.starUnit : labels.starUnitPlural}`}
                   aria-pressed={optimistic === n}
                   className="cursor-pointer p-0.5 disabled:cursor-default"
                 >
@@ -110,7 +116,7 @@ export function StarRating({
                 disabled={pending}
                 className="text-small text-muted-foreground hover:text-foreground underline underline-offset-4 disabled:no-underline"
               >
-                Clear
+                {labels.clear}
               </button>
             ) : null}
           </div>

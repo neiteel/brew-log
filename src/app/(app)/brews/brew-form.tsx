@@ -1,6 +1,7 @@
 "use client"
 
 import type { brews } from "@/lib/db/schema"
+import type { Messages } from "@/lib/i18n"
 import type { Route } from "next"
 import type { BrewFormState } from "./actions"
 
@@ -17,6 +18,7 @@ import {
   TextField,
 } from "@/components/text-input"
 import { formatTime } from "@/lib/format"
+import { fill } from "@/lib/i18n/config"
 
 const METHODS = [
   "V60",
@@ -58,6 +60,8 @@ function BrewForm<T extends string>({
   defaultBeanId,
   defaultDate,
   cancelHref,
+  t,
+  taste,
 }: {
   action: (prev: BrewFormState, formData: FormData) => Promise<BrewFormState>
   brew?: Brew
@@ -65,6 +69,9 @@ function BrewForm<T extends string>({
   defaultBeanId?: string
   defaultDate: string
   cancelHref: Route<T>
+  /** Only the form + taste slices — the strings this form actually renders. */
+  t: Messages["form"]
+  taste: Messages["taste"]
 }) {
   const [state, formAction, pending] = useActionState(action, {
     fieldErrors: null,
@@ -101,16 +108,16 @@ function BrewForm<T extends string>({
 
   return (
     <form action={formAction} className="space-y-10 md:space-y-12">
-      <Section label="Brew">
+      <Section label={t.sectionBrew}>
         <SelectField
-          label="Bean"
+          label={t.bean}
           name="beanId"
           defaultValue={brew?.beanId ?? defaultBeanId ?? ""}
           required
           error={fieldError("beanId")}
           className="md:col-span-6"
         >
-          <option value="">— pick a bean</option>
+          <option value="">{t.pickBean}</option>
           {beanOptions.map((bean) => (
             <option key={bean.id} value={bean.id}>
               {bean.name} — {bean.roastery}
@@ -118,7 +125,7 @@ function BrewForm<T extends string>({
           ))}
         </SelectField>
         <TextField
-          label="Date"
+          label={t.date}
           name="brewedAt"
           type="date"
           defaultValue={
@@ -128,7 +135,7 @@ function BrewForm<T extends string>({
           className="md:col-span-6"
         />
         <RadioField
-          label="Method"
+          label={t.method}
           name="methodChoice"
           options={METHODS}
           value={methodChoice}
@@ -137,7 +144,7 @@ function BrewForm<T extends string>({
         />
         {methodChoice === "Other" ? (
           <TextField
-            label="Custom method"
+            label={t.customMethod}
             name="method"
             value={customMethod}
             onChange={(event) => setCustomMethod(event.target.value)}
@@ -151,9 +158,9 @@ function BrewForm<T extends string>({
         )}
       </Section>
 
-      <Section label="Recipe">
+      <Section label={t.sectionRecipe}>
         <TextField
-          label="Dose, g"
+          label={t.doseG}
           name="coffeeG"
           inputMode="decimal"
           value={dose}
@@ -164,7 +171,7 @@ function BrewForm<T extends string>({
         />
         {isEspresso ? (
           <TextField
-            label="Yield, g"
+            label={t.yieldG}
             name="brewWeightG"
             inputMode="decimal"
             value={brewWeight}
@@ -175,7 +182,7 @@ function BrewForm<T extends string>({
           />
         ) : (
           <TextField
-            label="Water, g"
+            label={t.waterG}
             name="waterG"
             inputMode="decimal"
             value={water}
@@ -186,47 +193,47 @@ function BrewForm<T extends string>({
           />
         )}
         <TextField
-          label="Temperature, °C"
+          label={t.temperatureC}
           name="temperatureC"
           inputMode="decimal"
           defaultValue={brew?.temperatureC ?? ""}
           placeholder="94"
-          hint="0–100"
+          hint={t.temperatureHint}
           error={fieldError("temperatureC")}
           className="md:col-span-4"
         />
         <TextField
-          label="Time"
+          label={t.time}
           name="timeSeconds"
           defaultValue={formatTime(brew?.timeSeconds) ?? ""}
           placeholder="2:25"
-          hint="mm:ss, or seconds"
+          hint={t.timeHint}
           error={fieldError("timeSeconds")}
           className="md:col-span-4"
         />
         {isEspresso ? (
           <>
             <TextField
-              label="TDS, %"
+              label={t.tdsPct}
               name="tds"
               inputMode="decimal"
               value={tds}
               onChange={(event) => setTds(event.target.value)}
               placeholder="10.25"
-              hint="typically 8–12"
+              hint={t.tdsHint}
               error={fieldError("tds")}
               className="md:col-span-4"
             />
             <TextField
-              label="Extraction yield, %"
+              label={t.extractionYieldPct}
               name="extractionYield"
               inputMode="decimal"
               defaultValue={brew?.extractionYield ?? ""}
               placeholder={computedEy ?? "20.5"}
               hint={
                 computedEy
-                  ? `auto ~${computedEy} if left blank`
-                  : "typically 18–22"
+                  ? fill(t.extractionAutoHint, { value: computedEy })
+                  : t.extractionHint
               }
               error={fieldError("extractionYield")}
               className="md:col-span-4"
@@ -234,7 +241,7 @@ function BrewForm<T extends string>({
           </>
         ) : null}
         <TextField
-          label="Grinder"
+          label={t.grinder}
           name="grinder"
           defaultValue={brew?.grinder ?? ""}
           placeholder="Comandante"
@@ -242,53 +249,55 @@ function BrewForm<T extends string>({
           className="md:col-span-4"
         />
         <TextField
-          label="Grind setting"
+          label={t.grindSetting}
           name="grindSetting"
           defaultValue={brew?.grindSetting ?? ""}
           placeholder="26 clicks"
           className="md:col-span-4"
         />
         <p className="text-body text-muted-foreground md:col-span-12">
-          {liveRatio ? `Ratio ${liveRatio}` : "Ratio —"}
-          {computedEy ? ` · Extraction ~${computedEy}%` : ""}
+          {liveRatio
+            ? fill(t.liveRatio, { value: liveRatio })
+            : t.liveRatioEmpty}
+          {computedEy ? fill(t.liveExtraction, { value: computedEy }) : ""}
         </p>
       </Section>
 
-      <Section label="Taste">
+      <Section label={taste.heading}>
         <div className="md:col-span-12">
           <ScaleInput
-            label="Rating"
+            label={taste.rating}
             name="rating"
             defaultValue={brew?.rating}
           />
           <ScaleInput
-            label="Aroma"
+            label={taste.aroma}
             name="tasteAroma"
             defaultValue={brew?.tasteAroma}
           />
           <ScaleInput
-            label="Sweetness"
+            label={taste.sweetness}
             name="tasteSweetness"
             defaultValue={brew?.tasteSweetness}
           />
           <ScaleInput
-            label="Acidity"
+            label={taste.acidity}
             name="tasteAcidity"
             defaultValue={brew?.tasteAcidity}
           />
           <ScaleInput
-            label="Bitterness"
+            label={taste.bitterness}
             name="tasteBitterness"
             defaultValue={brew?.tasteBitterness}
           />
           <ScaleInput
-            label="Body"
+            label={taste.body}
             name="tasteBody"
             defaultValue={brew?.tasteBody}
           />
         </div>
         <TextAreaField
-          label="Notes"
+          label={taste.notes}
           name="notes"
           defaultValue={brew?.notes ?? ""}
           placeholder="How did it taste? What would you change?"
@@ -296,10 +305,10 @@ function BrewForm<T extends string>({
         />
       </Section>
 
-      <Section label="Visibility">
+      <Section label={t.sectionVisibility}>
         <div className="md:col-span-12">
           <RadioField
-            label="Who can see this brew"
+            label={t.whoCanSee}
             name="isPublic"
             options={["Private", "Public"]}
             defaultValue={
@@ -307,7 +316,7 @@ function BrewForm<T extends string>({
             }
           />
           <p className="text-small text-muted-foreground mt-2">
-            Public brews appear on your page and in explore.
+            {t.visibilityHint}
           </p>
         </div>
       </Section>
@@ -315,19 +324,17 @@ function BrewForm<T extends string>({
       {state.formError ? (
         <p className="text-body text-destructive">{state.formError}</p>
       ) : state.fieldErrors ? (
-        <p className="text-body text-destructive">
-          Please fix the highlighted fields.
-        </p>
+        <p className="text-body text-destructive">{t.fixErrors}</p>
       ) : null}
       <div className="text-body flex items-center gap-8">
         <TextButton type="submit" disabled={pending}>
-          {pending ? "Saving…" : brew ? "Save changes" : "Save brew"}
+          {pending ? t.saving : brew ? t.saveChanges : t.saveBrew}
         </TextButton>
         <Link
           href={cancelHref}
           className="text-muted-foreground hover:text-foreground underline underline-offset-4"
         >
-          Cancel
+          {t.cancel}
         </Link>
       </div>
     </form>

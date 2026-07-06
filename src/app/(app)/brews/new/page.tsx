@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
 import { db } from "@/lib/db"
 import { beans } from "@/lib/db/schema"
+import { getDictionary } from "@/lib/i18n"
+import { fill } from "@/lib/i18n/config"
 import { countBrews, MAX_BREWS_PER_USER } from "@/lib/limits"
 import { requireSession } from "@/lib/session"
 
@@ -20,22 +22,23 @@ export default async function NewBrewPage({
   searchParams: Promise<{ bean?: string }>
 }) {
   const session = await requireSession()
+  const dict = getDictionary(session.user.locale)
   const { bean: defaultBeanId } = await searchParams
 
   const brewCount = await countBrews(session.user.id)
   if (brewCount >= MAX_BREWS_PER_USER) {
     return (
       <PageShell>
-        <PageHeader kicker="Brew" title="New Brew" />
+        <PageHeader kicker={dict.brew.kicker} title={dict.pages.newBrew} />
         <p className="text-body text-muted-foreground">
-          You&apos;ve reached the limit of {MAX_BREWS_PER_USER} brews —{" "}
+          {fill(dict.pages.brewLimitBefore, { max: MAX_BREWS_PER_USER })}
           <Link
             href="/journal"
             className="text-foreground hover:text-muted-foreground underline underline-offset-4"
           >
-            delete one
-          </Link>{" "}
-          to log another.
+            {dict.pages.brewLimitLink}
+          </Link>
+          {dict.pages.brewLimitAfter}
         </p>
       </PageShell>
     )
@@ -50,20 +53,23 @@ export default async function NewBrewPage({
   return (
     <PageShell>
       <PageHeader
-        kicker="Brew"
-        title="New Brew"
-        subtitle={`${brewCount} of ${MAX_BREWS_PER_USER} brews used`}
+        kicker={dict.brew.kicker}
+        title={dict.pages.newBrew}
+        subtitle={fill(dict.pages.brewsUsed, {
+          count: brewCount,
+          max: MAX_BREWS_PER_USER,
+        })}
       />
       {beanOptions.length === 0 ? (
         <p className="text-body text-muted-foreground">
-          You need a bean first —{" "}
+          {dict.pages.needBeanBefore}
           <Link
             href="/beans/new"
             className="text-foreground hover:text-muted-foreground underline underline-offset-4"
           >
-            add one
+            {dict.pages.needBeanLink}
           </Link>
-          , then log the brew.
+          {dict.pages.needBeanAfter}
         </p>
       ) : (
         <BrewForm
@@ -72,6 +78,8 @@ export default async function NewBrewPage({
           defaultBeanId={defaultBeanId}
           defaultDate={new Date().toISOString().slice(0, 10)}
           cancelHref="/journal"
+          t={dict.form}
+          taste={dict.taste}
         />
       )}
     </PageShell>

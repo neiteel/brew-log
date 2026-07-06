@@ -38,6 +38,19 @@ async function generateUniqueUsername(seed: string): Promise<string> {
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
+  user: {
+    additionalFields: {
+      // UI language preference. Included on the session user; set via
+      // authClient.updateUser({ locale }) from the Settings toggle. Input stays
+      // enabled (default) so updateUser accepts it; sign-up never sends it, so
+      // new users fall back to the "en" default.
+      locale: {
+        type: "string",
+        required: false,
+        defaultValue: "en",
+      },
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

@@ -2,14 +2,22 @@
 
 import { deleteBrew } from "../../actions"
 
-function DeleteBrewButton({ brewId }: { brewId: string }) {
+function DeleteBrewButton({
+  brewId,
+  label,
+  confirm,
+}: {
+  brewId: string
+  label: string
+  confirm: string
+}) {
   const action = deleteBrew.bind(null, brewId)
 
   return (
     <form
       action={action}
       onSubmit={(event) => {
-        if (!window.confirm("Delete this brew?")) {
+        if (!window.confirm(confirm)) {
           event.preventDefault()
         }
       }}
@@ -18,7 +26,7 @@ function DeleteBrewButton({ brewId }: { brewId: string }) {
         type="submit"
         className="text-body text-destructive underline underline-offset-4 hover:opacity-70"
       >
-        Delete brew
+        {label}
       </button>
     </form>
   )

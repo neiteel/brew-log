@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 
 import { createBean } from "../actions"
@@ -10,7 +12,13 @@ import { BeanScanner } from "./bean-scanner"
 // Client shell for the "new bean" page: the scanner lifts extracted fields up
 // here, and each new scan bumps `version` so the (uncontrolled) BeanForm
 // remounts and re-seeds its defaultValues from the latest prefill.
-function NewBean({ quota }: { quota: ScanQuota }) {
+function NewBean({
+  quota,
+  formLabels,
+}: {
+  quota: ScanQuota
+  formLabels: Messages["form"]
+}) {
   const [prefill, setPrefill] = useState<BeanScanFields | null>(null)
   const [version, setVersion] = useState(0)
 
@@ -29,6 +37,7 @@ function NewBean({ quota }: { quota: ScanQuota }) {
         action={createBean}
         prefill={prefill}
         cancelHref="/journal"
+        t={formLabels}
       />
     </div>
   )

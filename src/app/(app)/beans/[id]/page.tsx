@@ -9,6 +9,7 @@ import { PageShell } from "@/components/page-shell"
 import { db } from "@/lib/db"
 import { beans, brews } from "@/lib/db/schema"
 import { formatDate } from "@/lib/format"
+import { getDictionary } from "@/lib/i18n"
 import { requireSession } from "@/lib/session"
 
 export const metadata = { title: "Bean" }
@@ -19,6 +20,7 @@ export default async function BeanPage({
   params: Promise<{ id: string }>
 }) {
   const session = await requireSession()
+  const dict = getDictionary(session.user.locale)
   const { id } = await params
 
   const bean = await db.query.beans.findFirst({
@@ -32,7 +34,7 @@ export default async function BeanPage({
   return (
     <PageShell>
       <PageHeader
-        kicker={`Bean — added ${formatDate(bean.createdAt)}`}
+        kicker={`${dict.bean.addedPrefix} ${formatDate(bean.createdAt)}`}
         title={
           <>
             {bean.name}{" "}
@@ -43,11 +45,11 @@ export default async function BeanPage({
       />
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Bean</h2>
+        <h2 className="text-h2 font-medium">{dict.bean.heading}</h2>
         <div>
           {bean.originCountry ? (
             <Row
-              label="Origin"
+              label={dict.bean.origin}
               value={bean.originCountry}
               detail={
                 [bean.region, bean.altitude].filter(Boolean).join(", ") ||
@@ -57,33 +59,40 @@ export default async function BeanPage({
           ) : null}
           {bean.process || bean.roastLevel ? (
             <Row
-              label="Process"
+              label={dict.bean.process}
               value={bean.process ?? "—"}
-              detail={bean.roastLevel ? `${bean.roastLevel} roast` : undefined}
+              detail={
+                bean.roastLevel
+                  ? `${bean.roastLevel} ${dict.bean.roastSuffix}`
+                  : undefined
+              }
             />
           ) : null}
           {bean.varietals ? (
-            <Row label="Varietals" value={bean.varietals} />
+            <Row label={dict.bean.varietals} value={bean.varietals} />
           ) : null}
           {bean.flavorNotes ? (
-            <Row label="Flavor" value={bean.flavorNotes} />
+            <Row label={dict.bean.flavor} value={bean.flavorNotes} />
           ) : null}
           {bean.cuppingScore != null ? (
-            <Row label="Cupping" value={bean.cuppingScore} />
+            <Row label={dict.bean.cupping} value={bean.cuppingScore} />
           ) : null}
           {bean.roastDate ? (
-            <Row label="Roast date" value={formatDate(bean.roastDate)} />
+            <Row
+              label={dict.bean.roastDate}
+              value={formatDate(bean.roastDate)}
+            />
           ) : null}
           {bean.price || bean.weightG != null ? (
             <Row
-              label="Price"
+              label={dict.bean.price}
               value={bean.price ?? "—"}
               detail={bean.weightG != null ? `${bean.weightG} g` : undefined}
             />
           ) : null}
           {bean.productUrl ? (
             <Row
-              label="URL"
+              label={dict.bean.url}
               value={
                 <a
                   href={bean.productUrl}
@@ -97,7 +106,7 @@ export default async function BeanPage({
             />
           ) : null}
           {bean.moreInfo ? (
-            <Row label="More info" value={bean.moreInfo} />
+            <Row label={dict.bean.moreInfo} value={bean.moreInfo} />
           ) : null}
         </div>
         <div className="text-body flex items-center gap-8">
@@ -105,16 +114,16 @@ export default async function BeanPage({
             href={`/beans/${bean.id}/edit`}
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            Edit bean
+            {dict.bean.editBean}
           </Link>
         </div>
       </section>
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Brews</h2>
+        <h2 className="text-h2 font-medium">{dict.bean.brewsHeading}</h2>
         {bean.brews.length === 0 ? (
           <p className="text-body text-muted-foreground">
-            No brews with this bean yet.
+            {dict.bean.noBrewsYet}
           </p>
         ) : (
           <div>
@@ -142,7 +151,7 @@ export default async function BeanPage({
             href={`/brews/new?bean=${bean.id}`}
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            New brew with this bean
+            {dict.bean.newBrewWithBean}
           </Link>
         </div>
       </section>

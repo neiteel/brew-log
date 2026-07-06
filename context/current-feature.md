@@ -14,6 +14,8 @@ Not Started
 
 ### 待辦提醒（承前，未做）
 
+- **i18n 後續鋪設**：目前只翻 brews/beans（詳情頁、表單、new/edit 標籤）與評分區塊。尚未翻：journal / explore 列表、導覽列（app-nav / site-header）、登入/註冊/Settings 其餘 chrome、瀏覽器分頁標題（各頁 `metadata.title`）、以及 enum 選項值（沖煮方式/國家/處理法/烘焙度）與 placeholder 範例。沿用同模式（server 直接 `getDictionary`、client 收切片）即可擴充。
+
 - **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
 - **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
 
@@ -22,6 +24,8 @@ Not Started
 - **i18n 繁中**：實作前先讀 `node_modules/next/dist/docs/` 的 i18n 指南，不可直接套 next-intl 常規做法。
 
 ## History
+
+- **Phase 15 — i18n 繁中（en / zh-Hant）** — 2026-07-06 完成。讓繁中使用者看懂欄位／評分項目在填/評什麼；只翻 app 寫死的固定 UI，使用者輸入內容與 enum 值不翻。**刻意偏離官方 `[lang]` 路由做法**（使用者不要 URL 切換，已讀 `node_modules/next/dist/docs/.../internationalization.md`），改用「偏好存 DB + server 讀 locale 傳字典」。① `src/lib/i18n/`：`config.ts`（`LOCALES`=en/zh-Hant、`Locale`、`hasLocale`、`toLocale`、`LOCALE_NAMES`、`fill` 代入 `{token}`；純模組供 client import）、`messages/en.ts`（真值來源，`Widen<>` 讓他語系只需對齊 key）、`messages/zh-hant.ts`（檔名須 kebab-case，locale 代碼仍為 `zh-Hant`）、`index.ts`（`import "server-only"` + `getDictionary`）。② 偏好：`auth-schema.ts` user 加 `locale`（`.default("en").notNull()`）、`auth.ts` `user.additionalFields.locale`（input 不關，供 updateUser）、`auth-client.ts` 加 `inferAdditionalFields<typeof auth>()` 才有型別、`pnpm db:push` 已同步。③ Settings 新增「Language」區塊，`language-form.tsx` 用既有 `RadioField`（English / 繁體中文，名稱↔locale 對應）optimistic + `authClient.updateUser({ locale })` + `router.refresh()`。④ 翻譯範圍：brew 詳情頁（kicker、Public/Private、Bean/Recipe/Taste/Community 標題與所有 Row 標籤、View/Edit）、bean 詳情頁（同理 + Brews 空狀態）、brew/bean 表單全部欄位標籤/區塊/hint/按鈕/即時粉水比、new/edit 頁 header 與上限文案、刪除鈕與 confirm；TasteScale 收 `labels`、StarRating 收 `dict.community`。⑤ **序列化準則**（依 vercel-react-best-practices）：server component 直接 `getDictionary` 零序列化；client 只收所需切片（表單收 `form`/`taste`、StarRating 收 `community`、刪除鈕收字串），**不加全域 provider**（會把整本字典送上每條路由，違反 `server-serialization`）。`pnpm build`、`pnpm lint` 皆通過。
 
 - **Phase 14 — Explore 社群評分（★5）** — 2026-07-06 完成。會員可幫**別人**的公開 brew 打★1–5,把「值不值得試」的社群訊號帶進 Explore。① 新表 `brew_ratings`（`schema.ts`,`userId`+`brewId` 複合主鍵、`value` 1–5、`brewId` index）,與作者自評 `brews.rating`(1–10,AI Brew Master 仍用)分離。② `src/app/(app)/brews/[id]/rating-actions.ts`：`rateBrew`（upsert,`onConflictDoUpdate`）/`removeRating`,授權檢查須登入、`brew.isPublic`、非本人;revalidate 詳情頁 + `/explore`。③ `src/lib/ratings.ts` 的 `getRatingSummary`（avg + count + 本人票）。④ editorial 星星 `src/components/star-meter.tsx`（前景色實心 + 邊框空心,支援小數部分填色,server/client 共用）;`star-rating.tsx`（client,optimistic + `router.refresh()`,可改分/Clear）。⑤ 詳情頁公開 brew 加 Community section:人人看★平均與票數,登入且非本人才可評。⑥ `/explore` group-by 子查詢聚合★平均,列表把 `x/10` 換成 `★★★★☆ 4.3 (12)`,col-span 重新平衡(標題4+星2+烘豆商·使用者4+日期2)不刪元素;排序維持新著順。不做留言、不做倒讚、不加 Top rated（取代路線圖原本的 `brew_likes` 只做讚方案）。`pnpm build`、`pnpm lint` 皆通過。
 
