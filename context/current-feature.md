@@ -16,15 +16,14 @@ Not Started
 
 - **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
 - **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
-- **lint 壞掉**：`pnpm lint` 會 crash（`eslint-plugin-react` 7.37 與 ESLint 10 不相容，載入 `react/display-name` 規則即 TypeError），與功能程式無關；建議開 `chore/fix-eslint` 處理。
 
 ### 後續路線圖（2026-07-06 討論）
 
 - **i18n 繁中**：實作前先讀 `node_modules/next/dist/docs/` 的 i18n 指南，不可直接套 next-intl 常規做法。
-- **Explore 回饋**：決定**只做讚、不做倒讚**（個人沖煮紀錄的分享場景，倒讚是負激勵；倒讚的排序用途此處不需要）。實作：`brew_likes` 表（`userId` + `brewId` 唯一鍵）＋ explore 卡片與詳情頁按鈕。更遠期比倒讚更好的回饋是「我也試了這個配方」或簡短留言。
-- **Journal「View all」拆頁**（可選）：若 Journal 單頁兩列表變得太長，可改為每區只顯示最近 5 筆＋獨立的 `/beans`、`/brews` 列表頁再分頁。
 
 ## History
+
+- **Phase 14 — Explore 社群評分（★5）** — 2026-07-06 完成。會員可幫**別人**的公開 brew 打★1–5,把「值不值得試」的社群訊號帶進 Explore。① 新表 `brew_ratings`（`schema.ts`,`userId`+`brewId` 複合主鍵、`value` 1–5、`brewId` index）,與作者自評 `brews.rating`(1–10,AI Brew Master 仍用)分離。② `src/app/(app)/brews/[id]/rating-actions.ts`：`rateBrew`（upsert,`onConflictDoUpdate`）/`removeRating`,授權檢查須登入、`brew.isPublic`、非本人;revalidate 詳情頁 + `/explore`。③ `src/lib/ratings.ts` 的 `getRatingSummary`（avg + count + 本人票）。④ editorial 星星 `src/components/star-meter.tsx`（前景色實心 + 邊框空心,支援小數部分填色,server/client 共用）;`star-rating.tsx`（client,optimistic + `router.refresh()`,可改分/Clear）。⑤ 詳情頁公開 brew 加 Community section:人人看★平均與票數,登入且非本人才可評。⑥ `/explore` group-by 子查詢聚合★平均,列表把 `x/10` 換成 `★★★★☆ 4.3 (12)`,col-span 重新平衡(標題4+星2+烘豆商·使用者4+日期2)不刪元素;排序維持新著順。不做留言、不做倒讚、不加 Top rated（取代路線圖原本的 `brew_likes` 只做讚方案）。`pnpm build`、`pnpm lint` 皆通過。
 
 - **Phase 13 — 資料上限 + 列表分頁 + Bulk Seed** — 2026-07-06 完成，squash-merge 至 main（`d0648a0`）。① `src/lib/limits.ts`：每人 10 豆 / 50 brews，create server action insert 前 count 擋下並回友善錯誤；`/beans/new`、`/brews/new` 達上限直接顯示訊息取代表單，未達上限 header 顯示「x of N used」。② 分頁：共用 `src/components/pagination.tsx`（`PAGE_SIZE = 10`、page-based searchParams、Prev/Next + "Page X of Y"、page 參數 clamp、`scroll` prop）套用 `/explore`（保留篩選、換頁回頂）、`/journal`（`?beans=&brews=` 獨立參數、`scroll={false}` 原地換頁）、`/u/[username]`。③ Journal Brews 加 Bean + Method filter：`next/form` 的 `<Form scroll={false}>` 讓 Apply／Clear 也原地不動，套 filter 時 brews 回第 1 頁、beans 頁碼 hidden input 保留；Beans 上限 10 顆單頁全覽不做 filter。④ `src/lib/db/seed-bulk.ts` + `pnpm db:seed:bulk`：產生 25 豆 / 120 brews（`BULK_BEANS`/`BULK_BREWS` 可調）測試資料，直接 insert 刻意繞過上限；原 `pnpm db:seed` 精緻示範資料保留。`pnpm build` 通過（lint 因既有的 eslint-plugin-react 相容性問題無法跑）。
 

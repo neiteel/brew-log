@@ -1,14 +1,15 @@
 import Link from "next/link"
 
-import { and, count, desc, eq } from "drizzle-orm"
+import { and, avg, count, desc, eq } from "drizzle-orm"
 
 import { ListRow } from "@/components/list-row"
 import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
 import { clampPage, PAGE_SIZE, Pagination } from "@/components/pagination"
+import { StarRow } from "@/components/star-meter"
 import { SelectField } from "@/components/text-input"
 import { db } from "@/lib/db"
-import { beans, brews, user } from "@/lib/db/schema"
+import { beans, brewRatings, brews, user } from "@/lib/db/schema"
 
 export const metadata = { title: "Explore" }
 
@@ -38,12 +39,25 @@ export default async function ExplorePage({
     .where(and(...conditions))
   const { page, totalPages, offset } = clampPage(sp.page, totalCount)
 
+  // Community star ratings, aggregated per brew, so the list can show the
+  // ★ average (and vote count) in place of the author's own /10 self-score.
+  const ratingAgg = db
+    .select({
+      brewId: brewRatings.brewId,
+      average: avg(brewRatings.value).as("average"),
+      votes: count().as("votes"),
+    })
+    .from(brewRatings)
+    .groupBy(brewRatings.brewId)
+    .as("rating_agg")
+
   const [entries, methods, origins, roasts] = await Promise.all([
     db
       .select({
         id: brews.id,
         method: brews.method,
-        rating: brews.rating,
+        ratingAverage: ratingAgg.average,
+        ratingVotes: ratingAgg.votes,
         brewedAt: brews.brewedAt,
         beanName: beans.name,
         roastery: beans.roastery,
@@ -53,6 +67,7 @@ export default async function ExplorePage({
       .from(brews)
       .innerJoin(beans, eq(beans.id, brews.beanId))
       .innerJoin(user, eq(user.id, brews.userId))
+      .leftJoin(ratingAgg, eq(ratingAgg.brewId, brews.id))
       .where(and(...conditions))
       .orderBy(desc(brews.brewedAt))
       .limit(PAGE_SIZE)
@@ -154,22 +169,38 @@ export default async function ExplorePage({
           </p>
         ) : (
           <div>
-            {entries.map((entry) => (
-              <ListRow
-                key={entry.id}
-                href={`/brews/${entry.id}`}
-                title={entry.method}
-                subtitle={entry.beanName}
-                date={entry.brewedAt}
-              >
-                <p className="text-body md:col-span-1">
-                  {entry.rating != null ? `${entry.rating}/10` : "—"}
-                </p>
-                <p className="text-body text-muted-foreground md:col-span-5">
-                  {entry.roastery} · {entry.username ?? entry.userName}
-                </p>
-              </ListRow>
-            ))}
+            {entries.map((entry) => {
+              const average =
+                entry.ratingAverage != null ? Number(entry.ratingAverage) : null
+              return (
+                <ListRow
+                  key={entry.id}
+                  href={`/brews/${entry.id}`}
+                  title={entry.method}
+                  subtitle={entry.beanName}
+                  date={entry.brewedAt}
+                >
+                  <div className="text-small flex items-center gap-2 md:col-span-2">
+                    {average != null ? (
+                      <>
+                        <StarRow value={average} size={14} />
+                        <span className="font-medium">
+                          {average.toFixed(1)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ({entry.ratingVotes})
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </div>
+                  <p className="text-body text-muted-foreground md:col-span-4">
+                    {entry.roastery} · {entry.username ?? entry.userName}
+                  </p>
+                </ListRow>
+              )
+            })}
           </div>
         )}
 

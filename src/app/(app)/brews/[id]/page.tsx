@@ -10,10 +10,12 @@ import { TasteScale } from "@/components/taste-scale"
 import { db } from "@/lib/db"
 import { brews } from "@/lib/db/schema"
 import { formatDate, formatTime } from "@/lib/format"
+import { getRatingSummary } from "@/lib/ratings"
 import { getSession } from "@/lib/session"
 
 import { getBrewAdviceQuota, getCachedBrewAdvice } from "../advice"
 import { BrewMaster } from "./brew-master"
+import { StarRating } from "./star-rating"
 
 export const metadata = { title: "Brew" }
 
@@ -65,6 +67,12 @@ export default async function BrewPage({
   const [brewAdvice, adviceQuota] = isOwner
     ? await Promise.all([getCachedBrewAdvice(brew.id), getBrewAdviceQuota()])
     : [null, null]
+
+  // Community star ratings — only meaningful on public brews. Everyone sees the
+  // average; only logged-in members who aren't the author can cast a vote.
+  const ratingSummary = brew.isPublic
+    ? await getRatingSummary(brew.id, session?.user.id)
+    : null
 
   return (
     <PageShell>
@@ -220,6 +228,19 @@ export default async function BrewPage({
           </div>
         ) : null}
       </section>
+
+      {ratingSummary ? (
+        <section className="space-y-8 md:space-y-10">
+          <h2 className="text-h2 font-medium">Community</h2>
+          <StarRating
+            brewId={brew.id}
+            average={ratingSummary.average}
+            count={ratingSummary.count}
+            mine={ratingSummary.mine}
+            canRate={Boolean(session) && !isOwner}
+          />
+        </section>
+      ) : null}
 
       {isOwner && adviceQuota ? (
         <section className="space-y-8 md:space-y-10">

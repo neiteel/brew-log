@@ -125,6 +125,28 @@ export const brewAdviceUsage = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.period] })],
 )
 
+// Community ratings — one row per (user, brew). A member gives someone else's
+// public brew a 1–5 star vote; re-rating upserts the same row. Distinct from
+// `brews.rating` (the author's own 1–10 self-score, which AI Brew Master uses).
+export const brewRatings = pgTable(
+  "brew_ratings",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    brewId: text("brew_id")
+      .notNull()
+      .references(() => brews.id, { onDelete: "cascade" }),
+    value: integer("value").notNull(), // 1–5 stars
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.brewId] }),
+    index("brew_ratings_brewId_idx").on(table.brewId),
+  ],
+)
+
 export const beansRelations = relations(beans, ({ one, many }) => ({
   user: one(user, { fields: [beans.userId], references: [user.id] }),
   brews: many(brews),
