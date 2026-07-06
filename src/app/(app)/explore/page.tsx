@@ -1,10 +1,11 @@
 import Link from "next/link"
 
-import { and, desc, eq } from "drizzle-orm"
+import { and, count, desc, eq } from "drizzle-orm"
 
 import { ListRow } from "@/components/list-row"
 import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
+import { clampPage, PAGE_SIZE, Pagination } from "@/components/pagination"
 import { SelectField } from "@/components/text-input"
 import { db } from "@/lib/db"
 import { beans, brews, user } from "@/lib/db/schema"
@@ -30,6 +31,13 @@ export default async function ExplorePage({
   if (origin) conditions.push(eq(beans.originCountry, origin))
   if (roast) conditions.push(eq(beans.roastLevel, roast))
 
+  const [{ value: totalCount }] = await db
+    .select({ value: count() })
+    .from(brews)
+    .innerJoin(beans, eq(beans.id, brews.beanId))
+    .where(and(...conditions))
+  const { page, totalPages, offset } = clampPage(sp.page, totalCount)
+
   const [entries, methods, origins, roasts] = await Promise.all([
     db
       .select({
@@ -46,7 +54,9 @@ export default async function ExplorePage({
       .innerJoin(beans, eq(beans.id, brews.beanId))
       .innerJoin(user, eq(user.id, brews.userId))
       .where(and(...conditions))
-      .orderBy(desc(brews.brewedAt)),
+      .orderBy(desc(brews.brewedAt))
+      .limit(PAGE_SIZE)
+      .offset(offset),
     db
       .selectDistinct({ value: brews.method })
       .from(brews)
@@ -162,6 +172,13 @@ export default async function ExplorePage({
             ))}
           </div>
         )}
+
+        <Pagination
+          pathname="/explore"
+          page={page}
+          totalPages={totalPages}
+          params={{ method, origin, roast }}
+        />
       </section>
     </PageShell>
   )

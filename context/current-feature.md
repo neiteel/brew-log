@@ -1,36 +1,26 @@
-# Current Feature: Phase 12 — Email 驗證（Email Verification + 安全帳號連結）
+# Current Feature: Phase 13 — 資料上限 + 列表分頁 + Bulk Seed
 
 ## Status
 
 Completed (2026-07-06)
 
-## 起因
+## Goals
 
-Phase 11 做完後實測「先 email 註冊 → 再用同 email Google 登入」噴 `account_not_linked`。根因：Better Auth 連結到已存在帳號時，除了 `trustedProviders`（放行 provider 端）外，還要求**本地帳號 `emailVerified=true`**（`accountLinking.requireLocalEmailVerified` 預設 true）；本專案原本沒有 email 驗證，所有 email/密碼使用者都是未驗證，故必噴錯。
-
-一度用 `requireLocalEmailVerified: false` 繞過，但那會開**帳號預劫持（pre-hijacking）**漏洞：攻擊者先用你的 email＋他的密碼註冊（未驗證），你之後 Google 登入 → 合併 → 攻擊者密碼仍在。故改為正解：加 email 驗證。
-
-## Goals（採「不擋登入」）
-
-- `auth.ts` 加 `emailVerification`：`sendOnSignUp: true`（註冊自動寄驗證信）、`autoSignInAfterVerification: true`（點連結後自動登入）、`sendVerificationEmail` 透過 Resend 寄 `src/lib/emails/verify-email.ts`。
-- **不開** `emailAndPassword.requireEmailVerification`（未驗證仍可登入用 app；驗證只設 `emailVerified` 旗標、解鎖 Google 連結）。理由：dev 登入帳號（假信箱收不到信）＋現有未驗證帳號不被鎖死。
-- `requireLocalEmailVerified` **改回安全預設**（移除 Phase 11 臨時加的 `false`）。
-- 驗證信連結：Better Auth 走 `/api/auth/verify-email?token=…&callbackURL=…`，驗完導回 callbackURL。signup 傳 `callbackURL: origin+"/journal"`。
-- **把 `account_not_linked` 變友善**：`signIn.social` 加 `errorCallbackURL: origin+"/login"`；登入頁（server component 讀 `searchParams.error`）對應訊息「這 email 已有密碼，請用密碼登入；驗證 email 後即可用 Google」。
-
-## 待辦提醒（未做）
-
-- **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
-- **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
-- （已做）Settings 加了「未驗證提示 + 重寄驗證信」：Email row 顯示 Verified/Not verified；未驗證時顯示 `ResendVerification`（client，`authClient.sendVerificationEmail({ email, callbackURL: origin+"/journal" })`）。最佳實踐＝自動寄（主）＋重寄鈕（安全網）並存。
+- **Bulk seed**：新增 `src/lib/db/seed-bulk.ts` + `pnpm db:seed:bulk`。給 `test@example.com` 產生大量隨機資料（預設 25 豆 / 120 brews，`BULK_BEANS`/`BULK_BREWS` env 可調），方法／產地／烘焙度從固定池隨機、rating 與五項 taste 隨機、`brewedAt` 分散過去一年、約半數 `isPublic`。冪等（先清該 user 的 beans/brews）。直接走 db insert **刻意繞過上限**，方便做出「已達上限」與「多頁」的測試狀態。現有 `seed.ts`（精緻示範資料）保留不動。
+- **資料上限**：`src/lib/limits.ts` 定義 `MAX_BEANS_PER_USER = 10`、`MAX_BREWS_PER_USER = 50`（產品決定，2026-07-06 拍板）。只在 create server action 擋（insert 前 count，達上限回友善錯誤）；edit/delete 不影響；無 schema 變更。new bean / new brew 頁顯示「x / 上限」提示。
+- **列表分頁**：page-based（searchParams），每頁 10 筆（人工測試後從 20 調降）。共用 `<Pagination>` server component（Prev/Next 底線連結 + "Page X of Y"，merge 現有 searchParams，`scroll` prop 控制換頁後是否捲回頂部）。頁面：① `/explore`（保留 method/origin/roast 篩選參數；換頁回頂部）② `/journal`（Beans、Brews 兩列表獨立參數 `?beans=&brews=`，`scroll={false}` 原地換頁）③ `/u/[username]`。查詢用 `limit/offset` + `count(*)`；page 參數 clamp。首頁 `.limit(6)` 與 brew form 豆子下拉（有上限後全撈可接受）不動。
+- **Journal Brews filter**（人工測試後追加）：Brews 區加 Bean + Method 下拉（複用 explore 的 filter form 模式），用 `next/form` 的 `<Form scroll={false}>` 讓 Apply / Clear filters 也原地不動；套 filter 時 brews 回第 1 頁、beans 頁碼用 hidden input 保留；換頁連結帶著 filter。Beans 上限 10 顆單頁全覽，不需 filter。
 
 ## Notes
 
-### Better Auth 背景知識（2026-07-06 討論）
+- 實作順序：seed → 上限 → 分頁（explore 先定模式，再 journal、`/u/[username]`）。
+- 動手寫分頁前先讀 `node_modules/next/dist/docs/` 的 searchParams / Link 指南確認 API。
+- 上限 10 豆 / 50 brews 之下，beans 列表（≤10）正常情況不會翻頁——分頁元件仍套上，靠 bulk seed 超額資料驗證。
 
-- user 與登入方式分離：一個 `user` 可掛多個 `account`。Google 註冊者只有 `providerId: "google"` 的 account，**沒有 credential account**，用 `signIn.email` 會得到通用的 `INVALID_EMAIL_OR_PASSWORD`（刻意不透露帳號存在）。
-- OAuth 使用者補密碼兩條路：(1) 走忘記密碼流程（官方推薦，reset 時自動建 credential account）＝本 feature；(2) server-only `auth.api.setPassword`（可做在帳號設定頁）。
-- Account linking：email+密碼使用者之後用同 email 的 Google 登入，設定 `account.accountLinking: { enabled: true, trustedProviders: ["google"] }` 即可連到同一 user。
+## 待辦提醒（承前，未做）
+
+- **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
+- **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
 
 ### 後續路線圖（2026-07-06 討論）
 

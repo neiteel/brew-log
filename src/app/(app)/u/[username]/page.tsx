@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation"
 
-import { and, desc, eq } from "drizzle-orm"
+import { and, count, desc, eq } from "drizzle-orm"
 
 import { ListRow } from "@/components/list-row"
 import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
+import { clampPage, PAGE_SIZE, Pagination } from "@/components/pagination"
 import { db } from "@/lib/db"
 import { brews, user } from "@/lib/db/schema"
 
@@ -19,20 +20,35 @@ export async function generateMetadata({
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ username: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { username } = await params
+  const [{ username }, sp] = await Promise.all([params, searchParams])
 
   const profile = await db.query.user.findFirst({
     where: eq(user.username, username),
   })
   if (!profile) notFound()
 
+  const isPublicBrew = and(
+    eq(brews.userId, profile.id),
+    eq(brews.isPublic, true),
+  )
+
+  const [{ value: totalCount }] = await db
+    .select({ value: count() })
+    .from(brews)
+    .where(isPublicBrew)
+  const { page, totalPages, offset } = clampPage(sp.page, totalCount)
+
   const publicBrews = await db.query.brews.findMany({
-    where: and(eq(brews.userId, profile.id), eq(brews.isPublic, true)),
+    where: isPublicBrew,
     orderBy: desc(brews.brewedAt),
     with: { bean: { columns: { name: true, roastery: true } } },
+    limit: PAGE_SIZE,
+    offset,
   })
 
   return (
@@ -62,6 +78,11 @@ export default async function PublicProfilePage({
             ))}
           </div>
         )}
+        <Pagination
+          pathname={`/u/${username}`}
+          page={page}
+          totalPages={totalPages}
+        />
       </section>
     </PageShell>
   )

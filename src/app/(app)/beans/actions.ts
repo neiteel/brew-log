@@ -8,6 +8,7 @@ import { z } from "zod"
 
 import { db } from "@/lib/db"
 import { beans } from "@/lib/db/schema"
+import { countBeans, MAX_BEANS_PER_USER } from "@/lib/limits"
 import { requireSession } from "@/lib/session"
 
 export type BeanFormState = {
@@ -88,6 +89,12 @@ export async function createBean(
   const parsed = beanSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success)
     return { fieldErrors: fieldErrors(parsed.error), formError: null }
+
+  if ((await countBeans(session.user.id)) >= MAX_BEANS_PER_USER)
+    return {
+      fieldErrors: null,
+      formError: `You've reached the limit of ${MAX_BEANS_PER_USER} beans. Delete one to add another.`,
+    }
 
   const [bean] = await db
     .insert(beans)

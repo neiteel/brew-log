@@ -8,6 +8,7 @@ import { z } from "zod"
 
 import { db } from "@/lib/db"
 import { beans, brewAdvice, brews } from "@/lib/db/schema"
+import { countBrews, MAX_BREWS_PER_USER } from "@/lib/limits"
 import { requireSession } from "@/lib/session"
 
 export type BrewFormState = {
@@ -162,6 +163,12 @@ export async function createBrew(
   const result = await parseAndAuthorize(formData)
   if (!result.ok)
     return { fieldErrors: result.fieldErrors, formError: result.formError }
+
+  if ((await countBrews(result.session.user.id)) >= MAX_BREWS_PER_USER)
+    return {
+      fieldErrors: null,
+      formError: `You've reached the limit of ${MAX_BREWS_PER_USER} brews. Delete one to log another.`,
+    }
 
   const [brew] = await db
     .insert(brews)
