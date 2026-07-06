@@ -3,6 +3,7 @@
 import type { beans } from "@/lib/db/schema"
 import type { Route } from "next"
 import type { BeanFormState } from "./actions"
+import type { BeanScanFields } from "./scan"
 
 import { useActionState } from "react"
 import Link from "next/link"
@@ -11,7 +12,14 @@ import { Section } from "@/components/field"
 import { TextButton } from "@/components/text-button"
 import { RadioField, TextAreaField, TextField } from "@/components/text-input"
 
-const ROAST_LEVELS = ["Light", "Medium-Light", "Medium", "Medium-Dark", "Dark"]
+const ROAST_LEVELS = [
+  "Light",
+  "Medium-Light",
+  "Medium",
+  "Medium-Dark",
+  "Dark",
+  "Unknown",
+]
 
 // Type-or-pick suggestions (free text still allowed). Common coffee processes…
 const PROCESSES = [
@@ -93,13 +101,18 @@ const COUNTRIES = [
 
 type Bean = typeof beans.$inferSelect
 
+// Values read off a scanned bag photo, used to pre-fill an empty form. Inputs
+// are uncontrolled, so the parent remounts this form (via `key`) when a new
+// scan arrives to refresh the `defaultValue`s.
 function BeanForm<T extends string>({
   action,
   bean,
+  prefill,
   cancelHref,
 }: {
   action: (prev: BeanFormState, formData: FormData) => Promise<BeanFormState>
   bean?: Bean
+  prefill?: BeanScanFields | null
   cancelHref: Route<T>
 }) {
   const [state, formAction, pending] = useActionState(action, {
@@ -108,13 +121,18 @@ function BeanForm<T extends string>({
   })
   const fieldError = (name: string) => state.fieldErrors?.[name]
 
+  // Prefer a scanned value, then an existing bean's value, then empty. Numbers
+  // are coerced to strings for the text inputs.
+  const initial = (key: keyof BeanScanFields) =>
+    prefill?.[key] ?? bean?.[key] ?? ""
+
   return (
     <form action={formAction} className="space-y-10 md:space-y-12">
       <Section label="Identity">
         <TextField
           label="Name"
           name="name"
-          defaultValue={bean?.name}
+          defaultValue={initial("name")}
           placeholder="Ibis"
           required
           error={fieldError("name")}
@@ -123,7 +141,7 @@ function BeanForm<T extends string>({
         <TextField
           label="Roastery"
           name="roastery"
-          defaultValue={bean?.roastery}
+          defaultValue={initial("roastery")}
           placeholder="Scarlett Coffee Roastery"
           required
           error={fieldError("roastery")}
@@ -132,7 +150,7 @@ function BeanForm<T extends string>({
         <TextField
           label="Roaster location"
           name="roasteryCountry"
-          defaultValue={bean?.roasteryCountry ?? ""}
+          defaultValue={initial("roasteryCountry")}
           placeholder="United Kingdom"
           options={COUNTRIES}
           className="md:col-span-4"
@@ -143,7 +161,7 @@ function BeanForm<T extends string>({
         <TextField
           label="Origin"
           name="originCountry"
-          defaultValue={bean?.originCountry ?? ""}
+          defaultValue={initial("originCountry")}
           placeholder="Brazil"
           options={COUNTRIES}
           className="md:col-span-4"
@@ -151,28 +169,28 @@ function BeanForm<T extends string>({
         <TextField
           label="Region"
           name="region"
-          defaultValue={bean?.region ?? ""}
+          defaultValue={initial("region")}
           placeholder="Sul de Minas"
           className="md:col-span-4"
         />
         <TextField
           label="Altitude"
           name="altitude"
-          defaultValue={bean?.altitude ?? ""}
+          defaultValue={initial("altitude")}
           placeholder="1,150–1,250 m"
           className="md:col-span-4"
         />
         <TextField
           label="Varietals"
           name="varietals"
-          defaultValue={bean?.varietals ?? ""}
+          defaultValue={initial("varietals")}
           placeholder="Red Catuaí, Yellow Catuaí"
           className="md:col-span-6"
         />
         <TextField
           label="Process"
           name="process"
-          defaultValue={bean?.process ?? ""}
+          defaultValue={initial("process")}
           placeholder="Natural"
           options={PROCESSES}
           className="md:col-span-6"
@@ -183,7 +201,7 @@ function BeanForm<T extends string>({
         <RadioField
           label="Roast level"
           name="roastLevel"
-          defaultValue={bean?.roastLevel}
+          defaultValue={prefill?.roastLevel ?? bean?.roastLevel ?? "Light"}
           options={ROAST_LEVELS}
           className="md:col-span-12"
         />
@@ -191,7 +209,7 @@ function BeanForm<T extends string>({
           label="Roast date"
           name="roastDate"
           type="date"
-          defaultValue={bean?.roastDate ?? ""}
+          defaultValue={initial("roastDate")}
           error={fieldError("roastDate")}
           className="md:col-span-4"
         />
@@ -199,7 +217,7 @@ function BeanForm<T extends string>({
           label="Cupping score"
           name="cuppingScore"
           inputMode="decimal"
-          defaultValue={bean?.cuppingScore ?? ""}
+          defaultValue={initial("cuppingScore")}
           placeholder="86.5"
           hint="0–100"
           error={fieldError("cuppingScore")}
@@ -219,7 +237,7 @@ function BeanForm<T extends string>({
           label="Weight"
           name="weightG"
           inputMode="numeric"
-          defaultValue={bean?.weightG ?? ""}
+          defaultValue={initial("weightG")}
           placeholder="225"
           hint="grams"
           error={fieldError("weightG")}
@@ -240,7 +258,7 @@ function BeanForm<T extends string>({
         <TextAreaField
           label="Flavor notes"
           name="flavorNotes"
-          defaultValue={bean?.flavorNotes ?? ""}
+          defaultValue={initial("flavorNotes")}
           placeholder="Almond, Raisins, Strawberries"
           rows={2}
           className="md:col-span-12"

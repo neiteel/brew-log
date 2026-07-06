@@ -5,6 +5,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -82,6 +83,20 @@ export const brews = pgTable(
     index("brews_beanId_idx").on(table.beanId),
     index("brews_isPublic_idx").on(table.isPublic),
   ],
+)
+
+// Per-user, per-day counter for AI bean-scans. Caps daily token spend without
+// pulling in Redis — one row per (user, day), incremented on each scan.
+export const beanScanUsage = pgTable(
+  "bean_scan_usage",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    day: date("day").notNull(), // UTC date, "YYYY-MM-DD"
+    count: integer("count").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.day] })],
 )
 
 export const beansRelations = relations(beans, ({ one, many }) => ({
