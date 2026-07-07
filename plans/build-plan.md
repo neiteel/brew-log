@@ -25,8 +25,15 @@
   - **i18n 小修（一行）**：[language-form.tsx](<../src/app/(app)/settings/language-form.tsx>) 在 `updateUser({ locale })` 後、`router.refresh()` 前加 `await authClient.getSession({ query: { disableCookieCache: true } })`，否則 refresh 讀到舊 locale 的快取 cookie。i18n 架構不需改。
   - **付費分級把關**：tier 放 subscription 表或 user 欄位皆可，但把關的 server action（`createBrew`/`askBrewMaster`/`scanBeanPhoto`）要 fresh 讀 tier（查 DB 或 `getSession({ query: { disableCookieCache: true } })`）；升級 webhook 刷新 cookie 讓方案即時生效。
   - 驗證：改語言即時生效、改密碼登出全裝置的失效窗 ≤ maxAge。
+- [ ] 19. AI 濫用防護（上線 Vercel 前做）。現況：AI 只有登入牆 + 每人每月 10+10 次，攻擊面是「腳本大量開帳號領額度」。兩件事：
+  - **AI 功能加 `emailVerified` 把關**：在 `scanBeanPhoto`（[scan.ts](<../src/app/(app)/beans/scan.ts>)）與 `askBrewMaster`（[advice.ts](<../src/app/(app)/brews/advice.ts>)）的 session 檢查後加 `session.user.emailVerified` 檢查，未驗證回友善錯誤。迫使攻擊者要有真實收件信箱，成本大增。**前置條件：Resend 網域先驗證**，否則真用戶也收不到驗證信會被誤擋。
+  - **Better Auth `rateLimit`**：production 預設已啟用（同 IP 視窗限流），但預設存記憶體，在 Vercel serverless 每次冷啟動歸零、多實例不共享 → 形同虛設。要配 `rateLimit.storage: "secondary-storage"` 接 Upstash Redis（本來就在 stack 內），並對 `/sign-up/email` 設更嚴的 `customRules`（例如同 IP 每小時 ≤ 5 次註冊）。
+  - 額度數字（10/月）不用調低——單一用戶打滿約不到台幣一元，錢包風險由 Gemini 免費層 key 兜底（見上線前提醒）。
+- [x] 20. 一鍵匯出沖煮資料（下載式，不開 API）→ [history/20-export-brew-data.md](history/20-export-brew-data.md)。CSV 加值未做；按鈕文案 i18n 歸 feature 17。
 
 ## 上線前提醒（非 feature，部署時處理）
 
 - **Google 登入正式上線前**：GCP 補 production redirect URI；Vercel 設 `GOOGLE_CLIENT_ID/SECRET`、`BETTER_AUTH_URL`、`RESEND_API_KEY`。
-- **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱（neiteel@gmail.com）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。
+- **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。Resend 免費層額度綁帳號（換 key 不會變多）：**3,000 封/月、100 封/日**，網域驗證本身免費，這個量級對本專案綽綽有餘。
+- **Gemini API key**：production 用 **AI Studio 免費層 key（不綁信用卡）**——最壞情況是額度用完請求失敗，零金錢風險。目前開發用的 key 不是免費層，上線前另建。
+- **公開 repo**：git 歷史已掃過無密鑰（2026-07 確認）。公開 repo （Resend 網域未驗證期間，使用者註冊收不到驗證信）。

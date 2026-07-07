@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth"
 import { requireSession } from "@/lib/session"
 
 import { ChangePasswordForm } from "./change-password-form"
+import { ExportButton } from "./export-button"
 import { LanguageForm } from "./language-form"
 import { ResendVerification } from "./resend-verification"
 import { SetPasswordForm } from "./set-password-form"
@@ -57,6 +58,11 @@ export default async function SettingsPage() {
       <section className="space-y-8 md:space-y-10">
         <h2 className="text-h2 font-medium">Password</h2>
         {hasPassword ? <ChangePasswordForm /> : <SetPasswordForm />}
+      </section>
+
+      <section className="space-y-8 md:space-y-10">
+        <h2 className="text-h2 font-medium">Data</h2>
+        <ExportButton />
       </section>
 
       <section className="space-y-8 md:space-y-10">
