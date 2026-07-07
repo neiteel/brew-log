@@ -67,15 +67,18 @@ export default async function BrewPage({
     brew.tasteAcidity != null &&
     brew.tasteBitterness != null &&
     brew.tasteBody != null
-  const [brewAdvice, adviceQuota] = isOwner
-    ? await Promise.all([getCachedBrewAdvice(brew.id), getBrewAdviceQuota()])
-    : [null, null]
-
-  // Community star ratings — only meaningful on public brews. Everyone sees the
-  // average; only logged-in members who aren't the author can cast a vote.
-  const ratingSummary = brew.isPublic
-    ? await getRatingSummary(brew.id, session?.user.id)
-    : null
+  // The owner's advice/quota and the community rating summary are independent,
+  // so fetch them together rather than serially. Community star ratings are only
+  // meaningful on public brews; everyone sees the average, but only logged-in
+  // members who aren't the author can cast a vote.
+  const [[brewAdvice, adviceQuota], ratingSummary] = await Promise.all([
+    isOwner
+      ? Promise.all([getCachedBrewAdvice(brew.id), getBrewAdviceQuota()])
+      : Promise.resolve([null, null] as const),
+    brew.isPublic
+      ? getRatingSummary(brew.id, session?.user.id)
+      : Promise.resolve(null),
+  ])
 
   return (
     <PageShell>
