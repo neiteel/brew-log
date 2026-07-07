@@ -9,6 +9,7 @@ import { user as userTable } from "@/lib/db/schema"
 import { sendEmail } from "@/lib/email"
 import { resetPasswordEmail } from "@/lib/emails/reset-password"
 import { verifyEmail } from "@/lib/emails/verify-email"
+import { redis } from "@/lib/redis"
 
 /**
  * Social sign-ups (Google) don't supply a username, but our public profile
@@ -38,6 +39,42 @@ async function generateUniqueUsername(seed: string): Promise<string> {
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
+  // Back rate-limit counters with Upstash Redis so the limits are shared across
+  // Vercel's serverless instances and survive cold starts. The default memory
+  // store resets per invocation, which makes rate limiting a no-op on
+  // serverless. Better Auth stores/reads JSON strings here (redis.ts disables
+  // the client's automatic (de)serialization so the strings round-trip intact).
+  secondaryStorage: {
+    get: async (key) => (await redis.get<string>(key)) ?? null,
+    set: async (key, value, ttl) => {
+      if (ttl) await redis.set(key, value, { ex: ttl })
+      else await redis.set(key, value)
+    },
+    delete: async (key) => {
+      await redis.del(key)
+    },
+    // Atomic increment for rate-limit counters. INCR creates the key at 1 when
+    // absent; we set the TTL only on that first increment so the window expires
+    // a fixed time after it opened, matching Better Auth's contract.
+    increment: async (key, ttl) => {
+      const value = await redis.incr(key)
+      if (value === 1) await redis.expire(key, ttl)
+      return value
+    },
+  },
+  rateLimit: {
+    // On in production only (Better Auth's default), so local sign-up/auth
+    // testing isn't throttled. Flip to `true` temporarily to exercise the
+    // limits in dev. Verified working against Redis before this default.
+    enabled: process.env.NODE_ENV === "production",
+    storage: "secondary-storage",
+    customRules: {
+      // Throttle sign-ups hard: the abuse vector is scripts mass-registering
+      // accounts to farm free AI quota. Key is the path with the /api/auth base
+      // stripped, per Better Auth's matcher.
+      "/sign-up/email": { window: 3600, max: 5 },
+    },
+  },
   user: {
     additionalFields: {
       // UI language preference. Included on the session user; set via

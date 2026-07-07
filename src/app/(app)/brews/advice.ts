@@ -183,6 +183,18 @@ export async function askBrewMaster(
   const session = await requireSession()
   const force = options?.force ?? false
 
+  // Gate the model behind a verified email. Anonymous scripts can register
+  // accounts freely, but each would need a real, reachable inbox to spend the
+  // AI quota — which raises the cost of farming free generations considerably.
+  if (!session.user.emailVerified) {
+    const { remaining } = await getBrewAdviceQuota()
+    return {
+      ok: false,
+      error: "Please verify your email address to use the Brew Master.",
+      remaining,
+    }
+  }
+
   const brew = await loadBrew(brewId)
   if (!brew || brew.userId !== session.user.id) {
     const { remaining } = await getBrewAdviceQuota()

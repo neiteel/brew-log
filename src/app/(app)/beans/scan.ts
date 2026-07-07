@@ -143,6 +143,18 @@ export async function scanBeanPhoto(input: {
 }): Promise<ScanBeanResult> {
   const session = await requireSession()
 
+  // Gate the model behind a verified email. Anonymous scripts can register
+  // accounts freely, but each would need a real, reachable inbox to spend the
+  // AI quota — which raises the cost of farming free scans considerably.
+  if (!session.user.emailVerified) {
+    const { remaining } = await getBeanScanQuota()
+    return {
+      ok: false,
+      error: "Please verify your email address to use AI scanning.",
+      remaining,
+    }
+  }
+
   const { image, mediaType } = input
   const period = currentPeriod()
   if (!image || typeof image !== "string" || !mediaType?.startsWith("image/")) {
