@@ -33,20 +33,28 @@ pnpm db:studio     # open Drizzle Studio GUI to browse data
 
 # Workflow
 
+Planning files:
+
+- `context/build-plan.md` - checkbox roadmap of features in build order; the next unchecked item is what to build next
+- `context/current-feature.md` - the ONE feature being built right now (goals + build-step checkboxes with "done when" conditions)
+- `context/history/NN-name.md` - archive of each completed feature, one file per feature
+
 Every feature/fix follows this sequence:
 
-1. **Document** - Document the feature in `context/current-feature.md`
+1. **Document** - Spec the feature in `context/current-feature.md` (goals + small build steps, each with an observable "done when"); stop for review before writing code
 2. **Branch** - Create a new branch (`feature/[name]` or `fix/[name]`)
-3. **Implement** - Implement based on the feature doc
+3. **Implement** - Build one step at a time; check each step off in `current-feature.md` as its "done when" is verified, so progress survives a context clear
 4. **Test** - Verify in browser, run `pnpm build` and fix any errors
 5. **Iterate** - Make changes as needed
 6. **Commit** - Only after build passes (ask before committing)
 7. **Review** - Review AI-generated code before merging
 8. **Merge** - Squash-merge to main
 9. **Delete Branch** - Ask to delete branch after merge
-10. **Complete** - Mark as completed in `context/current-feature.md` and add to history
+10. **Complete** - Archive the spec to `context/history/`, check the item off in `context/build-plan.md`, reset `current-feature.md`
 
 > The `/feature` skill covers Steps 1, 3–7, and 10. Git operations (Steps 2, 6, 8–9) are done separately.
+>
+> Resuming after a context clear: progress lives in files, not the chat. Read `current-feature.md` and continue from the first unchecked build step.
 
 # Branching & Commits
 

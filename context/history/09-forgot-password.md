@@ -1,0 +1,3 @@
+# Phase 9 — 忘記密碼（Forgot / Reset Password）
+
+2026-07-06 完成。安裝 `resend`；新增 `src/lib/email.ts`（`sendEmail`，SDK 回 `{data,error}` 不 throw，無 `RESEND_API_KEY` 時把信印到 server console 供本地測試）與 `src/lib/emails/reset-password.ts`（inline HTML editorial 樣式信）。`auth.ts` 的 `emailAndPassword` 加上 `sendResetPassword`（寄 Resend 信）與 `revokeSessionsOnPasswordReset: true`。新增 `/forgot-password`（`authClient.requestPasswordReset({ email, redirectTo: origin+"/reset-password" })`，不論帳號存在與否都顯示相同成功訊息避免帳號探測）與 `/reset-password`（Better Auth 驗 token 後導回本頁帶 `?token=`／`?error=INVALID_TOKEN`；表單新密碼＋確認→`authClient.resetPassword`→導回 `/login`；token 失效顯示重新索取連結）。登入頁密碼欄下方加「Forgot password?」連結。此流程即未來 Google OAuth 使用者補設密碼的官方路徑。寄件者 `.env` 用 `EMAIL_FROM=onboarding@resend.dev`（未驗證網域僅能寄到 Resend 帳號信箱）。`pnpm build` 通過。
