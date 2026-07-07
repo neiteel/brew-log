@@ -13,6 +13,7 @@ A coffee brewing journal for dialing in your pour-over, espresso, and everything
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript)
 ![Drizzle](https://img.shields.io/badge/Drizzle-ORM-C5F74F)
 ![Postgres](https://img.shields.io/badge/Neon-Postgres-336791?logo=postgresql&logoColor=white)
+![Upstash](https://img.shields.io/badge/Upstash-Redis-00E9A3?logo=upstash&logoColor=white)
 
 </div>
 
@@ -30,7 +31,7 @@ It doubles as a reference implementation of a modern Next.js App Router stack: s
 - **Community & sharing** — Publish brews to the Explore feed, browse public profiles at `/u/[username]`, and give other members' brews a 1–5 star rating.
 - **Authentication** — Email/password and Google sign-in via Better Auth, with email verification, forgot/reset password, and change-password flows.
 - **Internationalization** — Ships with English and Traditional Chinese (`zh-Hant`), switchable per user in Settings.
-- **Guardrails** — Per-user record caps and monthly AI usage counters keep abuse and token spend in check, with paginated lists throughout.
+- **Guardrails** — Per-user record caps and monthly AI usage counters keep token spend in check, with paginated lists throughout. AI features require a verified email, and sign-ups are rate-limited per IP via Better Auth backed by Upstash Redis — so limits hold across serverless instances and cold starts instead of resetting per invocation.
 
 ## Tech Stack
 
@@ -41,6 +42,7 @@ It doubles as a reference implementation of a modern Next.js App Router stack: s
 | Auth       | Better Auth (email/password, Google, username plugin) |
 | AI         | Vercel AI SDK + Google Gemini                         |
 | Email      | Resend                                                |
+| Rate limit | Upstash Redis (Better Auth secondary storage)         |
 | Styling    | Tailwind CSS v4, Base UI                              |
 | Deployment | Vercel                                                |
 
@@ -80,6 +82,10 @@ It doubles as a reference implementation of a modern Next.js App Router stack: s
    # Resend (optional — enables verification & password-reset emails)
    RESEND_API_KEY="..."
    EMAIL_FROM="onboarding@resend.dev"
+
+   # Upstash Redis (optional — backs auth rate limiting across instances)
+   UPSTASH_REDIS_REST_URL="..."
+   UPSTASH_REDIS_REST_TOKEN="..."
    ```
 
 3. Push the schema to your database:
@@ -136,6 +142,7 @@ src/
     ├── auth.ts         # Better Auth configuration
     ├── db/             # Drizzle schema, client, and seeds
     ├── i18n/           # Locale config and message catalogs (en, zh-Hant)
+    ├── redis.ts        # Upstash Redis client (auth rate-limit storage)
     └── ...             # Ratings, limits, email, formatting helpers
 ```
 

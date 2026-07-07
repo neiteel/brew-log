@@ -13,6 +13,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript)
 ![Drizzle](https://img.shields.io/badge/Drizzle-ORM-C5F74F)
 ![Postgres](https://img.shields.io/badge/Neon-Postgres-336791?logo=postgresql&logoColor=white)
+![Upstash](https://img.shields.io/badge/Upstash-Redis-00E9A3?logo=upstash&logoColor=white)
 
 </div>
 
@@ -30,7 +31,7 @@ Brew Log 是一款為咖啡愛好者打造的全端網站，讓你更有系統�
 - **社群與分享**——把沖煮發佈到 Explore 動態、瀏覽 `/u/[username]` 公開檔案頁，並為其他成員的沖煮給 1～5 顆星評分。
 - **身分驗證**——透過 Better Auth 支援 Email／密碼與 Google 登入，含 Email 驗證、忘記／重設密碼、修改密碼流程。
 - **多語系**——內建英文與繁體中文（`zh-Hant`），可在設定中依使用者切換。
-- **防濫用機制**——以每位使用者的資料上限與每月 AI 用量計數器控管濫用與 token 花費，列表全面支援分頁。
+- **防濫用機制**——以每位使用者的資料上限與每月 AI 用量計數器控管 token 花費，列表全面支援分頁。AI 功能要求信箱已驗證，註冊則由 Better Auth 搭配 Upstash Redis 依 IP 限流——計數在多個 serverless 實例與冷啟動間共享，不再隨每次呼叫重置。
 
 ## 技術棧
 
@@ -41,6 +42,7 @@ Brew Log 是一款為咖啡愛好者打造的全端網站，讓你更有系統�
 | 身分驗證 | Better Auth（Email／密碼、Google、username plugin） |
 | AI       | Vercel AI SDK + Google Gemini                       |
 | 郵件     | Resend                                              |
+| 限流     | Upstash Redis（Better Auth secondary storage）      |
 | 樣式     | Tailwind CSS v4、Base UI                            |
 | 部署     | Vercel                                              |
 
@@ -80,6 +82,10 @@ Brew Log 是一款為咖啡愛好者打造的全端網站，讓你更有系統�
    # Resend（選用——啟用驗證信與重設密碼信）
    RESEND_API_KEY="..."
    EMAIL_FROM="onboarding@resend.dev"
+
+   # Upstash Redis（選用——跨實例共享的身分驗證限流儲存）
+   UPSTASH_REDIS_REST_URL="..."
+   UPSTASH_REDIS_REST_TOKEN="..."
    ```
 
 3. 將 schema 推送到資料庫：
@@ -136,6 +142,7 @@ src/
     ├── auth.ts         # Better Auth 設定
     ├── db/             # Drizzle schema、client 與 seed
     ├── i18n/           # 語系設定與訊息字典（en、zh-Hant）
+    ├── redis.ts        # Upstash Redis client（身分驗證限流儲存）
     └── ...             # 評分、上限、郵件、格式化等 helper
 ```
 
