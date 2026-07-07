@@ -1,9 +1,9 @@
 # Load Action
 
 1. Check $ARGUMENTS (after "load"):
-   - If it looks like a filename (single word, no spaces): Look for `context/features/{name}.md` OR `context/fixes/{name}.md`
+   - If it looks like a filename (single word, no spaces): Look for `plans/features/{name}.md` OR `plans/fixes/{name}.md`
    - If it's multiple words: Use as inline feature description, generate goals
-   - If empty: Load the FIRST unchecked item in `context/build-plan.md`. If there are no unchecked items, say so and stop
+   - If empty: Load the FIRST unchecked item in `plans/build-plan.md`. If there are no unchecked items, say so and stop
 
 2. Update current-feature.md:
    - Update H1 heading to include feature name (e.g., `# Current Feature: Add Navbar`)

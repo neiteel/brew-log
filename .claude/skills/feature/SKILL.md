@@ -10,11 +10,11 @@ Manages the full lifecycle of a feature from spec to merge.
 
 ## Working Files
 
-@context/current-feature.md
+@plans/current-feature.md
 
-- `context/current-feature.md` - the ONE feature being built right now (imported above)
-- `context/build-plan.md` - checkbox roadmap; `- [x]` done, `- [ ]` upcoming, in build order
-- `context/history/NN-name.md` - archived record of each completed feature (one file per feature)
+- `plans/current-feature.md` - the ONE feature being built right now (imported above)
+- `plans/build-plan.md` - checkbox roadmap; `- [x]` done, `- [ ]` upcoming, in build order
+- `plans/history/NN-name.md` - archived record of each completed feature (one file per feature)
 
 ### File Structure
 

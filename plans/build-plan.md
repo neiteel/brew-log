@@ -1,7 +1,7 @@
 # Build Plan
 
 > 一行一個 feature，按大致順序排。`- [x]` 表示已完成（詳細紀錄在
-> `context/history/NN-name.md`）。`/feature` 不帶 spec 時，預設 spec 下一個
+> `plans/history/NN-name.md`）。`/feature` 不帶 spec 時，預設 spec 下一個
 > 未勾選項目。
 
 ## Features
