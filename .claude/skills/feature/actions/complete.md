@@ -1,6 +1,6 @@
 # Complete Action
 
-1. Run `pnpm lint` — fix any errors before continuing
+1. Run `pnpm lint` and `pnpm build` — fix any errors before continuing; never commit with a failing build
 2. Archive the feature: write a summary (what was built, key files, decisions, gotchas) to `plans/history/NN-name.md`, where NN continues the numbering there
 3. Check the feature off (`- [x]`) in `plans/build-plan.md` with a link to the history file; if it was an ad-hoc feature not on the plan, add it as a checked item in order
 4. Reset current-feature.md:

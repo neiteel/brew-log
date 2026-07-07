@@ -1,7 +1,7 @@
 ---
 name: feature
-description: Manage current feature workflow - start, review, explain or complete
-argument-hint: load|start|review|explain|complete
+description: Manage the feature/fix lifecycle backed by plans/ files - load a spec, start building, review, test, explain, complete. Use whenever the user wants to build a new feature or fix, describes something to add or change in the app, asks what to build next, resumes interrupted work after a context clear, says a feature is done, or wants to wrap up / merge / ship - even if they phrase it conversationally and never say "feature" or type the command.
+argument-hint: load|start|review|test|explain|complete
 ---
 
 # Feature Workflow
@@ -35,6 +35,7 @@ Execute the requested action: $ARGUMENTS
 | `load`     | Load a feature spec or inline description |
 | `start`    | Begin implementation, create branch       |
 | `review`   | Check goals met, code quality             |
+| `test`     | Add/run unit tests for the feature        |
 | `explain`  | Document what changed and why             |
 | `complete` | Commit, push, merge, reset                |
 

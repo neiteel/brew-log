@@ -33,28 +33,9 @@ pnpm db:studio     # open Drizzle Studio GUI to browse data
 
 # Workflow
 
-Planning files:
+All feature/fix work goes through the `/feature` skill — invoke it proactively even when the user phrases things conversationally (wants to build something → `load`; ready to implement → `start`; seems done → `review` then `complete`). The skill owns the process details.
 
-- `plans/build-plan.md` - checkbox roadmap of features in build order; the next unchecked item is what to build next
-- `plans/current-feature.md` - the ONE feature being built right now (goals + build-step checkboxes with "done when" conditions)
-- `plans/history/NN-name.md` - archive of each completed feature, one file per feature
-
-Every feature/fix follows this sequence:
-
-1. **Document** - Spec the feature in `plans/current-feature.md` (goals + small build steps, each with an observable "done when"); stop for review before writing code
-2. **Branch** - Create a new branch (`feature/[name]` or `fix/[name]`)
-3. **Implement** - Build one step at a time; check each step off in `current-feature.md` as its "done when" is verified, so progress survives a context clear
-4. **Test** - Verify in browser, run `pnpm build` and fix any errors
-5. **Iterate** - Make changes as needed
-6. **Commit** - Only after build passes (ask before committing)
-7. **Review** - Review AI-generated code before merging
-8. **Merge** - Squash-merge to main
-9. **Delete Branch** - Ask to delete branch after merge
-10. **Complete** - Archive the spec to `plans/history/`, check the item off in `plans/build-plan.md`, reset `current-feature.md`
-
-> The `/feature` skill covers Steps 1, 3–7, and 10. Git operations (Steps 2, 6, 8–9) are done separately.
->
-> Resuming after a context clear: progress lives in files, not the chat. Read `current-feature.md` and continue from the first unchecked build step.
+State lives in `plans/` (`build-plan.md` roadmap → `current-feature.md` in progress → `history/` archive), not in the chat. After a context clear, read `plans/current-feature.md` and resume from the first unchecked build step.
 
 # Branching & Commits
 
