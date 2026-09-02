@@ -10,6 +10,7 @@ import { StarRow } from "@/components/star-meter"
 import { SelectField } from "@/components/text-input"
 import { db } from "@/lib/db"
 import { beans, brewRatings, brews, user } from "@/lib/db/schema"
+import { brewRatio } from "@/lib/format"
 
 export const metadata = { title: "Explore" }
 
@@ -61,6 +62,11 @@ export default async function ExplorePage({
         brewedAt: brews.brewedAt,
         beanName: beans.name,
         roastery: beans.roastery,
+        // The recipe is what a public brew is for. Same join, no extra query.
+        coffeeG: brews.coffeeG,
+        waterG: brews.waterG,
+        brewWeightG: brews.brewWeightG,
+        grindSetting: brews.grindSetting,
         username: user.username,
         userName: user.name,
       })
@@ -99,6 +105,10 @@ export default async function ExplorePage({
     .sort()
 
   const hasFilters = Boolean(method || origin || roast)
+  // Every row used to print a bare em dash when nothing on the page had been
+  // rated, which reads as missing data rather than "not rated yet". Give the
+  // column its width only once something on this page fills it.
+  const anyRated = entries.some((entry) => entry.ratingAverage != null)
 
   return (
     <PageShell>
@@ -172,6 +182,16 @@ export default async function ExplorePage({
             {entries.map((entry) => {
               const average =
                 entry.ratingAverage != null ? Number(entry.ratingAverage) : null
+              // The same recipe line the bean page already renders — this is
+              // a public recipe browser, and it was showing everything about
+              // a brew except the brew.
+              const recipe = [
+                entry.coffeeG != null ? `${entry.coffeeG} g` : null,
+                brewRatio(entry),
+                entry.grindSetting,
+              ]
+                .filter(Boolean)
+                .join(" · ")
               return (
                 <ListRow
                   key={entry.id}
@@ -180,22 +200,29 @@ export default async function ExplorePage({
                   subtitle={entry.beanName}
                   date={entry.brewedAt}
                 >
-                  <div className="text-small flex items-center gap-2 md:col-span-2">
-                    {average != null ? (
-                      <>
-                        <StarRow value={average} size={14} />
-                        <span className="font-medium">
-                          {average.toFixed(1)}
-                        </span>
-                        <span className="text-muted-foreground">
-                          ({entry.ratingVotes})
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </div>
-                  <p className="text-body text-muted-foreground md:col-span-4">
+                  {anyRated ? (
+                    <div className="text-small flex items-center gap-2 md:col-span-2">
+                      {average != null ? (
+                        <>
+                          <StarRow value={average} size={14} />
+                          <span className="font-medium">
+                            {average.toFixed(1)}
+                          </span>
+                          <span className="text-muted-foreground">
+                            ({entry.ratingVotes})
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <p
+                    className={`text-body wrap-anywhere tabular-nums ${anyRated ? "md:col-span-2" : "md:col-span-3"}`}
+                  >
+                    {recipe || "—"}
+                  </p>
+                  <p
+                    className={`text-body text-muted-foreground wrap-anywhere ${anyRated ? "md:col-span-2" : "md:col-span-3"}`}
+                  >
                     {entry.roastery} · {entry.username ?? entry.userName}
                   </p>
                 </ListRow>

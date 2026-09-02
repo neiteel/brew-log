@@ -60,15 +60,22 @@ export default async function SettingsPage() {
         {hasPassword ? <ChangePasswordForm /> : <SetPasswordForm />}
       </section>
 
-      <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Data</h2>
-        <ExportButton />
-      </section>
+      {/* Two one-link sections. At the shell's chapter rhythm each got 144px
+          above and below a 39px heading to introduce a single underlined word,
+          which reads as a section that failed to load. Grouped and tightened:
+          still more space above each heading than below it, but sized to what
+          they actually hold. */}
+      <div className="space-y-12 md:space-y-16">
+        <section className="space-y-4">
+          <h2 className="text-h2 font-medium">Data</h2>
+          <ExportButton />
+        </section>
 
-      <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Session</h2>
-        <SignOutButton />
-      </section>
+        <section className="space-y-4">
+          <h2 className="text-h2 font-medium">Session</h2>
+          <SignOutButton />
+        </section>
+      </div>
     </PageShell>
   )
 }

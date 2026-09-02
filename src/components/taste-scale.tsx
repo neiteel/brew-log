@@ -1,4 +1,5 @@
-import { Paren } from "@/components/field"
+import { DATA_ROW_MEASURE, Paren } from "@/components/field"
+import { cn } from "@/lib/utils"
 
 export type TasteProfile = {
   aroma: number
@@ -38,26 +39,29 @@ function TasteScale({
         return (
           <div
             key={key}
-            className="border-border text-body grid grid-cols-[6.5rem_1fr_1.5rem] items-center gap-x-3 border-b py-3 md:grid-cols-12 md:gap-x-5"
+            className={cn(
+              "border-border text-body grid grid-cols-[6.5rem_1fr_1.5rem] items-center gap-x-3 border-b py-3 md:grid-cols-[8rem_1fr_2.5rem] md:gap-x-5",
+              DATA_ROW_MEASURE,
+            )}
           >
-            <p className="md:col-span-2">
+            <p>
               <Paren>{label}</Paren>
             </p>
-            <div className="flex gap-1 md:col-span-4" aria-hidden>
+            <div className="flex gap-1" aria-hidden>
               {Array.from({ length: SCALE_MAX }, (_, i) => (
                 <span
                   key={i}
                   className={
                     i < score
                       ? "bg-foreground h-3.5 flex-1"
-                      : "border-border h-3.5 flex-1 border"
+                      : "border-border-strong h-3.5 flex-1 border"
                   }
                 />
               ))}
             </div>
             <p
               aria-label={`${label} ${score} of ${SCALE_MAX}`}
-              className="md:col-span-6"
+              className="tabular-nums md:text-right"
             >
               {score}
             </p>
