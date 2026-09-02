@@ -24,3 +24,15 @@ export async function countBrews(userId: string) {
     .where(eq(brews.userId, userId))
   return row.value
 }
+
+/**
+ * A quota line is a cost ceiling stated as fact, never an upgrade prompt
+ * (PRODUCT.md principle 3) — but at 3 of 50 it is a countdown pushed in the
+ * user's face at the exact moment they sit down to log a cup. Surface it only
+ * once running out is actually close.
+ */
+export const QUOTA_NOTICE_AT = 0.8
+
+export function nearQuota(count: number, max: number) {
+  return count / max >= QUOTA_NOTICE_AT
+}

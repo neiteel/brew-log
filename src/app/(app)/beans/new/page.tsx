@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
 import { getDictionary } from "@/lib/i18n"
 import { fill } from "@/lib/i18n/config"
-import { countBeans, MAX_BEANS_PER_USER } from "@/lib/limits"
+import { countBeans, MAX_BEANS_PER_USER, nearQuota } from "@/lib/limits"
 import { requireSession } from "@/lib/session"
 
 import { getBeanScanQuota } from "../scan"
@@ -42,10 +42,14 @@ export default async function NewBeanPage() {
       <PageHeader
         kicker={dict.bean.heading}
         title={dict.pages.newBean}
-        subtitle={fill(dict.pages.beansUsed, {
-          count: beanCount,
-          max: MAX_BEANS_PER_USER,
-        })}
+        subtitle={
+          nearQuota(beanCount, MAX_BEANS_PER_USER)
+            ? fill(dict.pages.beansUsed, {
+                count: beanCount,
+                max: MAX_BEANS_PER_USER,
+              })
+            : undefined
+        }
       />
       <NewBean quota={quota} formLabels={dict.form} />
     </PageShell>
