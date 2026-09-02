@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation"
 
-import { authClient } from "@/lib/auth-client"
 import { TextButton } from "@/components/text-button"
+import { authClient } from "@/lib/auth-client"
 
 function SignOutButton() {
   const router = useRouter()

@@ -51,7 +51,11 @@ function LanguageForm({ current }: { current: string | null | undefined }) {
         value={LOCALE_NAMES[locale]}
         onValueChange={choose}
       />
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

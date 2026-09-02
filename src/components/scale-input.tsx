@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 
-import { Paren } from "./field"
+import { cn } from "@/lib/utils"
+
+import { DATA_ROW_MEASURE, Paren } from "./field"
 
 const SCALE_MAX = 10
 
@@ -21,11 +23,16 @@ function ScaleInput({
   const [value, setValue] = useState<number | null>(defaultValue ?? null)
 
   return (
-    <div className="border-border text-body grid grid-cols-[6.5rem_1fr_1.5rem] items-center gap-x-3 border-b py-3 md:grid-cols-12 md:gap-x-5">
-      <p className="md:col-span-2">
+    <div
+      className={cn(
+        "border-border text-body grid grid-cols-[6.5rem_1fr_1.5rem] items-center gap-x-3 border-b py-3 md:grid-cols-[8rem_1fr_2.5rem] md:gap-x-5",
+        DATA_ROW_MEASURE,
+      )}
+    >
+      <p>
         <Paren>{label}</Paren>
       </p>
-      <div className="flex gap-1 md:col-span-4">
+      <div className="flex gap-1">
         {Array.from({ length: SCALE_MAX }, (_, i) => {
           const segment = i + 1
           return (
@@ -35,16 +42,26 @@ function ScaleInput({
               aria-label={`${label} ${segment} of ${SCALE_MAX}`}
               aria-pressed={value === segment}
               onClick={() => setValue(value === segment ? null : segment)}
-              className={
-                value != null && segment <= value
-                  ? "bg-foreground h-3.5 flex-1 cursor-pointer"
-                  : "border-border hover:border-foreground h-3.5 flex-1 cursor-pointer border transition-colors"
-              }
-            />
+              // The bar stays 14px; the button grows around it. Six scales
+              // means 60 targets on one form, and at 17.8x14 they were ~40% of
+              // the 24x24 minimum — a real miss rate for the primary user,
+              // tapping one-handed right after a pour.
+              className="group flex-1 cursor-pointer py-1.25"
+            >
+              <span
+                className={
+                  value != null && segment <= value
+                    ? "bg-foreground block h-3.5"
+                    : "border-border-strong group-hover:border-foreground block h-3.5 border transition-colors"
+                }
+              />
+            </button>
           )
         })}
       </div>
-      <p className="text-muted-foreground md:col-span-6">{value ?? "—"}</p>
+      <p className="text-muted-foreground tabular-nums md:text-right">
+        {value ?? "—"}
+      </p>
       <input type="hidden" name={name} value={value ?? ""} />
     </div>
   )

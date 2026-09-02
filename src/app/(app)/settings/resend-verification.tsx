@@ -32,7 +32,7 @@ function ResendVerification({ email }: { email: string }) {
         using this address.
       </p>
       {sent ? (
-        <p className="text-body text-muted-foreground">
+        <p role="status" className="text-body text-muted-foreground">
           Verification email sent. Check your inbox and spam folder.
         </p>
       ) : (
@@ -45,7 +45,11 @@ function ResendVerification({ email }: { email: string }) {
           {pending ? "Sending…" : "Resend verification email"}
         </TextButton>
       )}
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

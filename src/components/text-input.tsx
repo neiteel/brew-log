@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils"
 // reds the field and states what to fix.
 
 const fieldBase =
-  "w-full border border-border bg-transparent rounded-none px-3 py-2 outline-none " +
-  "placeholder:text-muted-foreground/40 transition-colors " +
+  "w-full border border-border-strong bg-transparent rounded-none px-3 py-2 outline-none " +
+  "placeholder:text-muted-foreground transition-colors " +
   "focus:border-foreground"
 
 const fieldError = "border-destructive focus:border-destructive"
@@ -96,7 +96,7 @@ function TextField({
   const msgId = useId()
   const hasMessage = Boolean(error || hint)
   return (
-    <div className={cn("text-body space-y-1.5", className)}>
+    <div className={cn("text-body min-w-0 space-y-1.5", className)}>
       <FieldLabel htmlFor={id} label={label} required={props.required} />
       <input
         {...props}
@@ -134,7 +134,7 @@ function SelectField({
   const msgId = useId()
   const hasMessage = Boolean(error || hint)
   return (
-    <div className={cn("text-body space-y-1.5", className)}>
+    <div className={cn("text-body min-w-0 space-y-1.5", className)}>
       <FieldLabel htmlFor={id} label={label} required={props.required} />
       <span className="relative block">
         <select
@@ -174,7 +174,7 @@ function TextAreaField({
   const msgId = useId()
   const hasMessage = Boolean(error || hint)
   return (
-    <div className={cn("text-body space-y-1.5", className)}>
+    <div className={cn("text-body min-w-0 space-y-1.5", className)}>
       <FieldLabel htmlFor={id} label={label} required={props.required} />
       <textarea
         rows={3}
@@ -231,11 +231,11 @@ function RadioField({
         {options.map((option) => (
           <label
             key={option}
-            className="has-data-checked:text-foreground text-muted-foreground/60 hover:text-foreground group flex cursor-pointer items-center gap-2 transition-colors"
+            className="has-data-checked:text-foreground text-muted-foreground hover:text-foreground group flex cursor-pointer items-center gap-2 py-1 transition-colors"
           >
             <Radio.Root
               value={option}
-              className="border-muted-foreground/40 group-hover:border-foreground data-checked:border-foreground focus-visible:outline-foreground flex size-3 shrink-0 items-center justify-center rounded-full border outline-none focus-visible:outline-1 focus-visible:outline-offset-2"
+              className="border-border-strong group-hover:border-foreground data-checked:border-foreground focus-visible:outline-foreground flex size-3 shrink-0 items-center justify-center rounded-full border outline-none focus-visible:outline-1 focus-visible:outline-offset-2"
             >
               <Radio.Indicator className="bg-foreground size-1.5 rounded-full" />
             </Radio.Root>

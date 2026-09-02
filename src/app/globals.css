@@ -1,62 +1,48 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
-  --value: 16;
-  --design-width: 1512;
-  --design-height: 982;
-  --vw-ratio: 0.8;
-  --vh-ratio: 0;
-  --fluid: calc(
-      (
-          (
-              (100vw / var(--design-width) * (var(--value) * var(--vw-ratio))) +
-                (1 - var(--vw-ratio)) * (var(--value) * 1px)
-            ) +
-            (
-              (
-                  100vh / var(--design-height) *
-                    (var(--value) * var(--vh-ratio))
-                ) +
-                (1 - var(--vh-ratio)) * (var(--value) * 1px)
-            )
-        ) /
-        2
-    ) /
-    16;
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: color-mix(in oklch, var(--foreground) 4%, transparent);
-  --secondary-foreground: oklch(0.205 0 0);
   --muted: color-mix(in oklch, var(--foreground) 4%, transparent);
-  --muted-foreground: color-mix(in oklch, var(--foreground) 52%, transparent);
-  --accent: color-mix(in oklch, var(--foreground) 4%, transparent);
-  --accent-foreground: oklch(0.205 0 0);
+  /* 58%, not 52%: measured 3.74:1 at 52%, which fails WCAG AA (4.5:1) on the
+     gray this system leans on hardest — every date, field label, hint and
+     empty state. 58% measures 4.89:1 and is visually indistinguishable. */
+  --muted-foreground: color-mix(in oklch, var(--foreground) 58%, transparent);
   --destructive: oklch(0.577 0.245 27.325);
+  /* Two weights, and the split is meaning, not taste. 10% is a decorative
+     rule: row separators, section hairlines, the AI panels' dashed frame —
+     things you read past. */
   --border: color-mix(in oklch, var(--foreground) 10%, transparent);
-  --input: color-mix(in oklch, var(--foreground) 10%, transparent);
-  --ring: color-mix(in oklch, var(--foreground) 35%, transparent);
-  --radius: 0.625rem;
+  /* 46% measures 3.26:1 on white, clearing WCAG 1.4.11's 3:1 for non-text.
+     For anything a border has to *carry*: the outline of a control (an input
+     has no fill, so its border is the only thing saying it is an input), and
+     the unfilled half of a scale — on a 0-10 bar the empty segments are the
+     data, they are what says the scale runs to ten. At 10% (1.24:1) both were
+     effectively invisible, so "Acidity 2" read as no data rather than low
+     acidity. */
+  --border-strong: color-mix(in oklch, var(--foreground) 46%, transparent);
+  /* Opaque. As a 35% mix it was halved again by the base layer's
+     `outline-ring/50`, landing at 17.5% alpha — a measured 1.36:1 ring that
+     keyboard users cannot see. */
+  --ring: var(--foreground);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
 }
 
 @theme inline {
-  --font-sans: var(--font-sans);
+  /* Inter Tight carries no CJK glyphs, so zh-Hant was falling through to the
+     browser's last-resort font — unstyled and different on every platform, at
+     the one place the product claims both languages are native. Name the CJK
+     faces (all system-resident, so this stays zero-cost) and end on a generic
+     family so there is always a real fallback. */
+  --font-sans:
+    var(--font-inter-tight), "PingFang TC", "Noto Sans TC",
+    "Microsoft JhengHei", sans-serif;
   --font-heading: var(--font-sans);
   --color-ring: var(--ring);
-  --color-input: var(--input);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   /* Type scale (single source of truth — TIWD L11).
@@ -88,35 +74,19 @@
   --text-small: 0.8125rem; /* 13px — meta, captions, footer */
   --text-small--line-height: 1.4;
   --text-small--letter-spacing: normal; /* tapered off display's -2% so 13px meta stays legible */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  /* The focus ring is a browser surface that ships with no design system
+     unless you give it one. Explicit rather than inheriting `outline: auto`,
+     whose geometry differs per browser. Inputs opt out (`outline-none`) and
+     indicate focus by inking their border to the foreground instead. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;
@@ -124,4 +94,28 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Han script needs its own metrics. Its glyphs fill the em box and have no
+   ascenders or descenders to create optical leading, so the -1.5% tracking
+   that keeps Latin body text tight closes counters instead, and 1.45 line
+   height reads cramped where the convention is 1.6-1.75. `<html lang>` follows
+   the viewer's stored locale, so `:lang()` is enough — no JS, no second font
+   pipeline.
+
+   Unlayered on purpose: Tailwind emits these as `var(--tw-leading, 1.45)` with
+   the value inlined per utility, and its utilities layer would beat anything
+   written in @layer base regardless of specificity. */
+:lang(zh-Hant) .text-display,
+:lang(zh-Hant) .text-h1,
+:lang(zh-Hant) .text-h2,
+:lang(zh-Hant) .text-body,
+:lang(zh-Hant) .text-small {
+  letter-spacing: normal;
+}
+:lang(zh-Hant) .text-body {
+  line-height: 1.75;
+}
+:lang(zh-Hant) .text-small {
+  line-height: 1.6;
 }

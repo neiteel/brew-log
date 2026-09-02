@@ -121,7 +121,9 @@ export function StarRating({
             ) : null}
           </div>
           {error ? (
-            <p className="text-small text-destructive">{error}</p>
+            <p role="alert" className="text-small text-destructive">
+              {error}
+            </p>
           ) : null}
         </div>
       ) : null}

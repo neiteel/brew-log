@@ -22,7 +22,7 @@ const GUEST_ITEMS: { href: Route; label: string }[] = [
 
 function navLinkClass(active: boolean) {
   return cn(
-    "text-foreground transition-colors hover:text-foreground/40",
+    "text-foreground hover:text-muted-foreground transition-colors",
     active && "underline underline-offset-4",
   )
 }
