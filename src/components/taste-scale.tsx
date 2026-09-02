@@ -1,12 +1,14 @@
 import { DATA_ROW_MEASURE, Paren } from "@/components/field"
 import { cn } from "@/lib/utils"
 
+// null means the axis was never scored. 0 is a real score on a 0-10 scale
+// ("no acidity at all"), so the two must never collapse into each other.
 export type TasteProfile = {
-  aroma: number
-  sweetness: number
-  acidity: number
-  bitterness: number
-  body: number
+  aroma: number | null
+  sweetness: number | null
+  acidity: number | null
+  bitterness: number | null
+  body: number | null
 }
 
 // The five dimension labels, already localized by the caller.
@@ -52,19 +54,18 @@ function TasteScale({
                 <span
                   key={i}
                   className={
-                    i < score
+                    score != null && i < score
                       ? "bg-foreground h-3.5 flex-1"
                       : "border-border-strong h-3.5 flex-1 border"
                   }
                 />
               ))}
             </div>
-            <p
-              aria-label={`${label} ${score} of ${SCALE_MAX}`}
-              className="tabular-nums md:text-right"
-            >
-              {score}
-            </p>
+            {/* The label and the number are adjacent visible text, so the row
+                reads as "Acidity 7" on its own. The aria-label this replaced
+                sat on a <p>, a role that supports no accessible name, and was
+                dropped by assistive tech anyway. */}
+            <p className="tabular-nums md:text-right">{score ?? "—"}</p>
           </div>
         )
       })}

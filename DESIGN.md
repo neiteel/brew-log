@@ -241,7 +241,7 @@ The system's workhorse: a gray parenthetical label, an ink value, and an optiona
 
 ### Segmented Scale (signature)
 
-The five taste axes and the overall rating render as a ten-segment bar — filled segments in ink, unfilled in Rule Gray outline — with the numeral right-aligned to the end of the measure. The same anatomy serves display and input: as an input each segment becomes a button whose bar stays 14px while its hit area grows to 24px. This is the product's only visualization, and it exists because integers on a 0–10 scale need to stay countable at a glance.
+The five taste axes and the overall rating render as a ten-segment bar — filled segments in ink, unfilled in Rule Gray outline — with the numeral right-aligned to the end of the measure. The same anatomy serves display and input: as an input each segment becomes a button whose bar stays 14px while its hit area grows to 24px, plus one narrow leading marker for an explicit 0 — ten counting segments can only express 1–10, and 0 is a real score. The marker sits outside the count, detached by a wider gap, so a 7 still shows seven filled segments; the display row needs no marker because it prints the numeral. This is the product's only visualization, and it exists because integers on a 0–10 scale need to stay countable at a glance.
 
 ### Star Meter
 

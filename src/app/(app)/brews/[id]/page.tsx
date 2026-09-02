@@ -228,11 +228,11 @@ export default async function BrewPage({
           {hasTaste ? (
             <TasteScale
               profile={{
-                aroma: brew.tasteAroma ?? 0,
-                sweetness: brew.tasteSweetness ?? 0,
-                acidity: brew.tasteAcidity ?? 0,
-                bitterness: brew.tasteBitterness ?? 0,
-                body: brew.tasteBody ?? 0,
+                aroma: brew.tasteAroma,
+                sweetness: brew.tasteSweetness,
+                acidity: brew.tasteAcidity,
+                bitterness: brew.tasteBitterness,
+                body: brew.tasteBody,
               }}
               labels={{
                 aroma: dict.taste.aroma,

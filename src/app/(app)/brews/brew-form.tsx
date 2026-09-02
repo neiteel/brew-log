@@ -19,6 +19,7 @@ import {
 } from "@/components/text-input"
 import { formatRatio, formatTime, isEspresso } from "@/lib/format"
 import { fill } from "@/lib/i18n/config"
+import { cn } from "@/lib/utils"
 
 const METHODS = [
   "V60",
@@ -166,29 +167,31 @@ function BrewForm<T extends string>({
           error={fieldError("coffeeG")}
           className="md:col-span-4"
         />
-        {espresso ? (
-          <TextField
-            label={t.yieldG}
-            name="brewWeightG"
-            inputMode="decimal"
-            value={brewWeight}
-            onChange={(event) => setBrewWeight(event.target.value)}
-            placeholder="40"
-            error={fieldError("brewWeightG")}
-            className="md:col-span-4"
-          />
-        ) : (
-          <TextField
-            label={t.waterG}
-            name="waterG"
-            inputMode="decimal"
-            value={water}
-            onChange={(event) => setWater(event.target.value)}
-            placeholder="300"
-            error={fieldError("waterG")}
-            className="md:col-span-4"
-          />
-        )}
+        {/* Both stay mounted and only the irrelevant one is display:none. An
+            unmounted input submits nothing, and `optionalNumber` reads that as
+            "not provided" -> null, so updateBrew's .set() wiped the stored value
+            the moment the method switched, including mid-keystroke, while
+            typing a custom method that happens to contain "espresso". */}
+        <TextField
+          label={t.waterG}
+          name="waterG"
+          inputMode="decimal"
+          value={water}
+          onChange={(event) => setWater(event.target.value)}
+          placeholder="300"
+          error={fieldError("waterG")}
+          className={cn("md:col-span-4", espresso && "hidden")}
+        />
+        <TextField
+          label={t.yieldG}
+          name="brewWeightG"
+          inputMode="decimal"
+          value={brewWeight}
+          onChange={(event) => setBrewWeight(event.target.value)}
+          placeholder="40"
+          error={fieldError("brewWeightG")}
+          className={cn("md:col-span-4", !espresso && "hidden")}
+        />
         <TextField
           label={t.temperatureC}
           name="temperatureC"
@@ -208,35 +211,31 @@ function BrewForm<T extends string>({
           error={fieldError("timeSeconds")}
           className="md:col-span-4"
         />
-        {espresso ? (
-          <>
-            <TextField
-              label={t.tdsPct}
-              name="tds"
-              inputMode="decimal"
-              value={tds}
-              onChange={(event) => setTds(event.target.value)}
-              placeholder="10.25"
-              hint={t.tdsHint}
-              error={fieldError("tds")}
-              className="md:col-span-4"
-            />
-            <TextField
-              label={t.extractionYieldPct}
-              name="extractionYield"
-              inputMode="decimal"
-              defaultValue={brew?.extractionYield ?? ""}
-              placeholder={computedEy ?? "20.5"}
-              hint={
-                computedEy
-                  ? fill(t.extractionAutoHint, { value: computedEy })
-                  : t.extractionHint
-              }
-              error={fieldError("extractionYield")}
-              className="md:col-span-4"
-            />
-          </>
-        ) : null}
+        <TextField
+          label={t.tdsPct}
+          name="tds"
+          inputMode="decimal"
+          value={tds}
+          onChange={(event) => setTds(event.target.value)}
+          placeholder="10.25"
+          hint={t.tdsHint}
+          error={fieldError("tds")}
+          className={cn("md:col-span-4", !espresso && "hidden")}
+        />
+        <TextField
+          label={t.extractionYieldPct}
+          name="extractionYield"
+          inputMode="decimal"
+          defaultValue={brew?.extractionYield ?? ""}
+          placeholder={computedEy ?? "20.5"}
+          hint={
+            computedEy
+              ? fill(t.extractionAutoHint, { value: computedEy })
+              : t.extractionHint
+          }
+          error={fieldError("extractionYield")}
+          className={cn("md:col-span-4", !espresso && "hidden")}
+        />
         <TextField
           label={t.grinder}
           name="grinder"

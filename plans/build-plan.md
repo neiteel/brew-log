@@ -49,16 +49,16 @@
 > **這裡不是全部都該用 `/impeccable`。** 它負責的是介面品質，不是業務邏輯。
 > 下面每一項都標了實際該走的路徑。
 
-- [ ] **A. 兩個靜默資料 bug（最優先，會弄髒 DB）** → **`/feature` 開 `fix/` 分支，不是 impeccable**
+- [x] **A. 兩個靜默資料 bug（最優先，會弄髒 DB）** → [history/22-fix-silent-data-bugs.md](history/22-fix-silent-data-bugs.md)（2026-09-02，`fix/silent-data-bugs`；連同 C 的第一項一起修。DB 盤點結果乾淨，無須人工修）
   這是表單狀態機與資料語意的錯，不是視覺問題；impeccable 不會、也不該碰。
   - `brew-form.tsx:95-96` 用子字串比對從自訂方法欄位推導 `isEspresso`：Water 填了值再切成 Espresso → input 卸載、隱藏欄位不送出 → **值消失**；編輯時 `updateBrew` 的 `.set()`（`actions.ts:193`）把 null 寫進 DB。打自訂方法時字串一含 "espresso" 還會在打字途中抽換欄位。
   - `brews/[id]/page.tsx:231-235` 用 `?? 0` 把未填風味軸渲染成 **0 分**。0 在 0–10 尺度上是合法分數（`schema.ts:69` 驗 `min(0)`），「酸質 0」＝完全沒有酸，是「我沒記」的相反。→ null 時渲染 `—` 並省略長條。（`DESIGN.md` 的 Don'ts 已載入這條原則，但程式碼還沒改。）
   - 修完值得查一次 DB，既有資料可能已被污染。
 
 - [ ] **C. 風味刻度的鍵盤與語意** → **`/impeccable harden`**（觸控高度已修，剩下的是鍵盤與輔助科技）
-  - `scale-input.tsx:37` 從 1 開始 → **0 無法輸入**，但 schema 是 0–10。（這半項偏功能 bug，可併進 A 一起做。）
-  - 六軸共 **60 個 tab stop**、無方向鍵、無群組語意。
-  - `taste-scale.tsx:63` 的 `aria-label` 掛在 `<p>` 上 → 無支援命名的 role，**被輔助科技丟棄**。
+  - ~~`scale-input.tsx:37` 從 1 開始 → **0 無法輸入**~~ **已修**（併進 A，見 history/22）：最前面多一個較窄的 0 標記，不佔計數。
+  - ~~`taste-scale.tsx:63` 的 `aria-label` 掛在 `<p>` 上~~ **已刪**（併進 A，見 history/22）。
+  - 六軸共 **66 個 tab stop**（0 標記讓每軸多一個）、無方向鍵、無群組語意。
   - → 換原生 `<input type="range" min="0" max="10">`，或用 `text-input.tsx` 已在用的 Base UI `RadioGroup` 拿 roving tabindex。**注意**：`DESIGN.md` 已把分段刻度列為 signature component，換實作要同步更新它的 Components 章節。
 
 - [ ] **E. 額度文案位置** → **`/impeccable layout`**（是層級問題，不是文案問題）
