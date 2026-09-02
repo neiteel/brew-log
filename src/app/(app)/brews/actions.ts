@@ -18,9 +18,12 @@ export type BrewFormState = {
   formError: string | null
 }
 
+// The text columns are unbounded `text` in Postgres; the cap has to be here or
+// a single paste lands 100 KB in a field every layout renders.
 const optionalText = z
   .string()
   .trim()
+  .max(300, "Keep this under 300 characters.")
   .transform((value) => (value === "" ? null : value))
 
 const optionalNumber = (schema: z.ZodType<number>) =>
@@ -53,7 +56,11 @@ const timeField = z.preprocess((value) => {
 
 const brewSchema = z.object({
   beanId: z.string().min(1, "Pick a bean."),
-  method: z.string().trim().min(1, "Method is required."),
+  method: z
+    .string()
+    .trim()
+    .min(1, "Method is required.")
+    .max(120, "Method must be 120 characters or fewer."),
   grinder: optionalText,
   grindSetting: optionalText,
   coffeeG: optionalNumber(
@@ -96,7 +103,11 @@ const brewSchema = z.object({
   tasteAcidity: scale("Acidity"),
   tasteBitterness: scale("Bitterness"),
   tasteBody: scale("Body"),
-  notes: optionalText,
+  notes: z
+    .string()
+    .trim()
+    .max(4000, "Keep notes under 4,000 characters.")
+    .transform((value) => (value === "" ? null : value)),
   isPublic: z.preprocess((value) => value === "Public", z.boolean()),
   brewedAt: z.preprocess(
     (value) =>

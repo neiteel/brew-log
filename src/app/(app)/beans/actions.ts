@@ -18,9 +18,20 @@ export type BeanFormState = {
   formError: string | null
 }
 
+// Every text column is an unbounded `text` in Postgres, so the length cap has
+// to live here: without it one paste puts a 100 KB "name" into every layout
+// that renders it. Sized to the longest plausible real answer, not to the
+// widest thing that still fits.
 const optionalText = z
   .string()
   .trim()
+  .max(300, "Keep this under 300 characters.")
+  .transform((value) => (value === "" ? null : value))
+
+const longText = z
+  .string()
+  .trim()
+  .max(4000, "Keep this under 4,000 characters.")
   .transform((value) => (value === "" ? null : value))
 
 const optionalNumber = (schema: z.ZodType<number>) =>
@@ -31,8 +42,16 @@ const optionalNumber = (schema: z.ZodType<number>) =>
   }, schema.nullable())
 
 const beanSchema = z.object({
-  name: z.string().trim().min(1, "Name is required."),
-  roastery: z.string().trim().min(1, "Roastery is required."),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required.")
+    .max(120, "Name must be 120 characters or fewer."),
+  roastery: z
+    .string()
+    .trim()
+    .min(1, "Roastery is required.")
+    .max(120, "Roastery must be 120 characters or fewer."),
   roasteryCountry: optionalText,
   originCountry: optionalText,
   region: optionalText,
@@ -59,12 +78,21 @@ const beanSchema = z.object({
       .int("Weight must be a whole number of grams.")
       .positive("Weight must be greater than 0 grams."),
   ),
+  // `z.url()` alone accepts any scheme `new URL()` parses — `javascript:` and
+  // `data:` included — and this value is rendered as a real href on the bean
+  // page. Restrict it to the two schemes a shop link can legitimately use.
   productUrl: z.preprocess(
     (value) =>
       typeof value === "string" && value.trim() === "" ? null : value,
-    z.url("Product URL must be a valid URL.").nullable(),
+    z
+      .url({
+        protocol: /^https?$/,
+        error: "Product URL must start with http:// or https://.",
+      })
+      .max(2000, "Product URL is too long.")
+      .nullable(),
   ),
-  moreInfo: optionalText,
+  moreInfo: longText,
 })
 
 // Collapse Zod's per-field arrays to the first message per field.

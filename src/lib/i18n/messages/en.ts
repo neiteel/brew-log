@@ -70,7 +70,9 @@ export const en = {
     extraction: "Extraction",
     time: "Time",
     grinder: "Grinder",
+    grind: "Grind",
     viewBean: "View bean",
+    repeatBrew: "Brew this again",
     editBrew: "Edit brew",
     deleteBrew: "Delete brew",
     deleteBrewConfirm: "Delete this brew?",
@@ -91,6 +93,15 @@ export const en = {
     needBeanBefore: "You need a bean first — ",
     needBeanLink: "add one",
     needBeanAfter: ", then log the brew.",
+  },
+  // 404 page. (The uncaught-error boundary is a client component with no
+  // server parent to hand it a dictionary — it stays English until feature 17
+  // settles how client chrome gets its locale.)
+  notFound: {
+    title: "Page not found",
+    body: "The link may be wrong, or the brew or bean it pointed to was deleted or made private.",
+    journal: "Back to your journal",
+    explore: "Explore public brews",
   },
   // Form chrome shared by the bean and brew forms.
   form: {

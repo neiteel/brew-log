@@ -62,7 +62,9 @@ export const zhHant: Messages = {
     extraction: "萃取率",
     time: "時間",
     grinder: "磨豆機",
+    grind: "研磨",
     viewBean: "查看咖啡豆",
+    repeatBrew: "照這杯再沖一次",
     editBrew: "編輯沖煮",
     deleteBrew: "刪除沖煮",
     deleteBrewConfirm: "要刪除這筆沖煮紀錄嗎？",
@@ -82,6 +84,12 @@ export const zhHant: Messages = {
     needBeanBefore: "請先新增一支咖啡豆 — ",
     needBeanLink: "新增咖啡豆",
     needBeanAfter: "，再記錄沖煮。",
+  },
+  notFound: {
+    title: "找不到這個頁面",
+    body: "連結可能有誤，或它指向的沖煮、豆子已被刪除或改為私人。",
+    journal: "回到你的日誌",
+    explore: "看看公開的沖煮",
   },
   form: {
     sectionIdentity: "基本資料",

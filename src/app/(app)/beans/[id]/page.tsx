@@ -1,3 +1,4 @@
+import { cache } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -8,11 +9,31 @@ import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
 import { db } from "@/lib/db"
 import { beans, brews } from "@/lib/db/schema"
-import { formatDate } from "@/lib/format"
+import { brewRatio, externalHref, formatDate } from "@/lib/format"
 import { getDictionary } from "@/lib/i18n"
 import { requireSession } from "@/lib/session"
 
-export const metadata = { title: "Bean" }
+// Shared by generateMetadata and the page itself — one round trip per request.
+const getBean = cache(async (id: string, userId: string) =>
+  db.query.beans.findFirst({
+    where: and(eq(beans.id, id), eq(beans.userId, userId)),
+    with: {
+      brews: { orderBy: desc(brews.brewedAt) },
+    },
+  }),
+)
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await requireSession()
+  const { id } = await params
+  const bean = await getBean(id, session.user.id)
+  if (!bean) return { title: "Bean" }
+  return { title: `${bean.name} — ${bean.roastery}` }
+}
 
 export default async function BeanPage({
   params,
@@ -23,12 +44,7 @@ export default async function BeanPage({
   const dict = getDictionary(session.user.locale)
   const { id } = await params
 
-  const bean = await db.query.beans.findFirst({
-    where: and(eq(beans.id, id), eq(beans.userId, session.user.id)),
-    with: {
-      brews: { orderBy: desc(brews.brewedAt) },
-    },
-  })
+  const bean = await getBean(id, session.user.id)
   if (!bean) notFound()
 
   return (
@@ -94,19 +110,30 @@ export default async function BeanPage({
             <Row
               label={dict.bean.url}
               value={
-                <a
-                  href={bean.productUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-muted-foreground underline underline-offset-4"
-                >
-                  {bean.productUrl}
-                </a>
+                // Only an http(s) value becomes a link; anything else stays
+                // inert text rather than a clickable `javascript:` href.
+                externalHref(bean.productUrl) ? (
+                  <a
+                    href={bean.productUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-muted-foreground underline underline-offset-4"
+                  >
+                    {bean.productUrl}
+                  </a>
+                ) : (
+                  bean.productUrl
+                )
               }
             />
           ) : null}
           {bean.moreInfo ? (
-            <Row label={dict.bean.moreInfo} value={bean.moreInfo} />
+            <Row
+              label={dict.bean.moreInfo}
+              value={
+                <span className="whitespace-pre-line">{bean.moreInfo}</span>
+              }
+            />
           ) : null}
         </div>
         <div className="text-body flex items-center gap-8">
@@ -127,23 +154,43 @@ export default async function BeanPage({
           </p>
         ) : (
           <div>
-            {bean.brews.map((brew) => (
-              <Link
-                key={brew.id}
-                href={`/brews/${brew.id}`}
-                className="group border-border grid grid-cols-[6.5rem_1fr_auto] items-baseline gap-x-3 border-b py-4 md:grid-cols-12 md:gap-x-5"
-              >
-                <p className="text-small text-muted-foreground md:col-span-2">
-                  {formatDate(brew.brewedAt)}
-                </p>
-                <p className="text-h3 font-medium group-hover:underline group-hover:underline-offset-4 md:col-span-4">
-                  {brew.method}
-                </p>
-                <p className="text-body md:col-span-6">
-                  {brew.rating != null ? `${brew.rating}/10` : "—"}
-                </p>
-              </Link>
-            ))}
+            {/* The recipe is what you came for: two brews of the same bean are
+                only worth comparing by the numbers that separate them. Every
+                field is already loaded with the bean — no extra query. */}
+            {bean.brews.map((brew) => {
+              const recipe = [
+                brew.coffeeG != null ? `${brew.coffeeG} g` : null,
+                brewRatio(brew),
+                brew.grindSetting,
+              ].filter(Boolean)
+              return (
+                <Link
+                  key={brew.id}
+                  href={`/brews/${brew.id}`}
+                  className="group border-border grid grid-cols-[6.5rem_1fr_auto] items-baseline gap-x-3 gap-y-1 border-b py-4 md:grid-cols-12 md:gap-x-5 md:gap-y-0"
+                >
+                  <p className="text-small text-muted-foreground md:col-span-2">
+                    {formatDate(brew.brewedAt)}
+                  </p>
+                  <p className="text-h3 col-start-2 font-medium wrap-anywhere group-hover:underline group-hover:underline-offset-4 md:col-span-3 md:col-start-auto">
+                    {brew.method}
+                  </p>
+                  <p className="text-body col-span-2 col-start-2 wrap-anywhere tabular-nums md:col-span-5 md:col-start-auto">
+                    {recipe.join(" · ")}
+                  </p>
+                  <p className="text-body col-start-3 row-start-1 tabular-nums md:col-span-2 md:col-start-auto md:row-start-auto md:text-right">
+                    {brew.rating != null ? (
+                      <>
+                        {brew.rating}
+                        <span className="text-muted-foreground">/10</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </Link>
+              )
+            })}
           </div>
         )}
         <div className="text-body">

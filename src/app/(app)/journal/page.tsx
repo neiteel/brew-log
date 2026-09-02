@@ -103,7 +103,7 @@ export default async function JournalPage({
                 subtitle={bean.roastery}
                 date={bean.createdAt}
               >
-                <p className="text-body text-muted-foreground md:col-span-6">
+                <p className="text-body text-muted-foreground wrap-anywhere md:col-span-6">
                   {[bean.originCountry, bean.process, bean.roastLevel]
                     .filter(Boolean)
                     .join(" · ")}
