@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 
+import { Button } from "@/components/button"
 import { authClient } from "@/lib/auth-client"
 
 function GoogleMark() {
@@ -56,16 +57,23 @@ function SocialAuth() {
         <span className="text-body text-muted-foreground">or</span>
         <span className="border-border flex-1 border-t" />
       </div>
-      <button
+      {/* An alternative route to the same destination, so it stays quieter
+          than the form's own commit button above it. */}
+      <Button
+        variant="quiet"
         type="button"
         onClick={handleGoogle}
         disabled={pending}
-        className="border-border hover:bg-muted disabled:text-muted-foreground text-body flex w-full items-center justify-center gap-3 rounded-md border py-3 font-medium transition-colors"
+        className="w-full py-3"
       >
         <GoogleMark />
         {pending ? "Redirecting…" : "Continue with Google"}
-      </button>
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
+      </Button>
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

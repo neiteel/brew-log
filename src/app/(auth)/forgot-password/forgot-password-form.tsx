@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { TextButton } from "@/components/text-button"
+import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
@@ -26,7 +26,7 @@ function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <p className="text-body text-muted-foreground">
+      <p role="status" className="text-body text-muted-foreground">
         If an account exists for that email, we&rsquo;ve sent a link to reset
         your password. Check your inbox and spam folder.
       </p>
@@ -46,9 +46,9 @@ function ForgotPasswordForm() {
           autoComplete="email"
           required
         />
-        <TextButton type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Sending…" : "Send reset link"}
-        </TextButton>
+        </Button>
       </form>
     </div>
   )

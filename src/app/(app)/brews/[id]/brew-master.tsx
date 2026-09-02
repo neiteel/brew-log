@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 
+import { Button } from "@/components/button"
+
 import { askBrewMaster } from "../advice"
 
 type Status = "idle" | "working" | "error"
@@ -59,7 +61,10 @@ function BrewMaster({
   return (
     <div className="border-border space-y-4 border border-dashed p-5 md:p-6">
       {advice ? (
-        <p className="text-body text-foreground whitespace-pre-wrap">
+        <p
+          role="status"
+          className="text-body text-foreground wrap-anywhere whitespace-pre-wrap"
+        >
           {advice}
         </p>
       ) : (
@@ -70,19 +75,19 @@ function BrewMaster({
       )}
 
       <div className="text-body flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button
+        <Button
           type="button"
           onClick={() => run(advice != null)}
           disabled={working || depleted}
-          className="border-foreground text-foreground hover:bg-foreground hover:text-background disabled:text-muted-foreground disabled:border-border border px-4 py-2 font-medium transition-colors disabled:hover:bg-transparent"
+          aria-busy={working}
         >
           {working
             ? "Thinking…"
             : advice
               ? "Regenerate"
               : "Ask the Brew Master"}
-        </button>
-        <span className="text-small text-muted-foreground">
+        </Button>
+        <span role="status" className="text-small text-muted-foreground">
           {working
             ? "This can take a few seconds."
             : depleted
@@ -92,7 +97,9 @@ function BrewMaster({
       </div>
 
       {status === "error" && error ? (
-        <p className="text-small text-destructive">{error}</p>
+        <p role="alert" className="text-small text-destructive">
+          {error}
+        </p>
       ) : null}
     </div>
   )

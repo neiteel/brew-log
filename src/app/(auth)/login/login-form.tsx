@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { TextButton } from "@/components/text-button"
+import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
@@ -63,10 +63,14 @@ function LoginForm({
           Forgot password?
         </Link>
       </p>
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
-      <TextButton type="submit" disabled={pending}>
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <Button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
-      </TextButton>
+      </Button>
     </form>
   )
 }

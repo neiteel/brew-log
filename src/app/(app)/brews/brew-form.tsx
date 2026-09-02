@@ -8,16 +8,16 @@ import type { BrewFormState } from "./actions"
 import { useActionState, useState } from "react"
 import Link from "next/link"
 
+import { Button } from "@/components/button"
 import { Section } from "@/components/field"
 import { ScaleInput } from "@/components/scale-input"
-import { TextButton } from "@/components/text-button"
 import {
   RadioField,
   SelectField,
   TextAreaField,
   TextField,
 } from "@/components/text-input"
-import { formatTime } from "@/lib/format"
+import { formatRatio, formatTime, isEspresso } from "@/lib/format"
 import { fill } from "@/lib/i18n/config"
 
 const METHODS = [
@@ -47,12 +47,6 @@ type Brew = typeof brews.$inferSelect
 
 type BeanOption = { id: string; name: string; roastery: string }
 
-function ratio(dose: number, out: number) {
-  if (!dose || !out) return null
-  const r = out / dose
-  return `1:${r >= 3 ? r.toFixed(1) : r.toFixed(2)}`
-}
-
 function BrewForm<T extends string>({
   action,
   brew,
@@ -60,6 +54,7 @@ function BrewForm<T extends string>({
   defaultBeanId,
   defaultDate,
   cancelHref,
+  submitLabel,
   t,
   taste,
 }: {
@@ -69,6 +64,8 @@ function BrewForm<T extends string>({
   defaultBeanId?: string
   defaultDate: string
   cancelHref: Route<T>
+  /** Overrides the default edit/create wording — a prefilled brew is still new. */
+  submitLabel?: string
   /** Only the form + taste slices — the strings this form actually renders. */
   t: Messages["form"]
   taste: Messages["taste"]
@@ -96,13 +93,13 @@ function BrewForm<T extends string>({
   const [tds, setTds] = useState(brew?.tds?.toString() ?? "")
 
   const method = methodChoice === "Other" ? customMethod : methodChoice
-  const isEspresso = /espresso/i.test(method)
+  const espresso = isEspresso(method)
 
   const doseN = Number(dose) || 0
-  const outN = isEspresso ? Number(brewWeight) || 0 : Number(water) || 0
-  const liveRatio = ratio(doseN, outN)
+  const outN = espresso ? Number(brewWeight) || 0 : Number(water) || 0
+  const liveRatio = formatRatio(doseN, outN)
   const computedEy =
-    isEspresso && doseN && Number(brewWeight) && Number(tds)
+    espresso && doseN && Number(brewWeight) && Number(tds)
       ? ((Number(brewWeight) * Number(tds)) / doseN).toFixed(1)
       : null
 
@@ -169,7 +166,7 @@ function BrewForm<T extends string>({
           error={fieldError("coffeeG")}
           className="md:col-span-4"
         />
-        {isEspresso ? (
+        {espresso ? (
           <TextField
             label={t.yieldG}
             name="brewWeightG"
@@ -211,7 +208,7 @@ function BrewForm<T extends string>({
           error={fieldError("timeSeconds")}
           className="md:col-span-4"
         />
-        {isEspresso ? (
+        {espresso ? (
           <>
             <TextField
               label={t.tdsPct}
@@ -322,14 +319,20 @@ function BrewForm<T extends string>({
       </Section>
 
       {state.formError ? (
-        <p className="text-body text-destructive">{state.formError}</p>
+        <p role="alert" className="text-body text-destructive">
+          {state.formError}
+        </p>
       ) : state.fieldErrors ? (
-        <p className="text-body text-destructive">{t.fixErrors}</p>
+        <p role="alert" className="text-body text-destructive">
+          {t.fixErrors}
+        </p>
       ) : null}
       <div className="text-body flex items-center gap-8">
-        <TextButton type="submit" disabled={pending}>
-          {pending ? t.saving : brew ? t.saveChanges : t.saveBrew}
-        </TextButton>
+        <Button type="submit" disabled={pending}>
+          {pending
+            ? t.saving
+            : (submitLabel ?? (brew ? t.saveChanges : t.saveBrew))}
+        </Button>
         <Link
           href={cancelHref}
           className="text-muted-foreground hover:text-foreground underline underline-offset-4"

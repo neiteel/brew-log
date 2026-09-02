@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 
-import { TextButton } from "@/components/text-button"
+import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
@@ -65,15 +65,19 @@ function ChangePasswordForm() {
         minLength={8}
         required
       />
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
       {done ? (
         <p className="text-body text-muted-foreground">
           Password updated. Other devices have been signed out.
         </p>
       ) : null}
-      <TextButton type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Updating…" : "Change password"}
-      </TextButton>
+      </Button>
     </form>
   )
 }

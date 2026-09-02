@@ -9,8 +9,8 @@ import type { BeanScanFields } from "./scan"
 import { useActionState } from "react"
 import Link from "next/link"
 
+import { Button } from "@/components/button"
 import { Section } from "@/components/field"
-import { TextButton } from "@/components/text-button"
 import { RadioField, TextAreaField, TextField } from "@/components/text-input"
 
 const ROAST_LEVELS = [
@@ -277,14 +277,18 @@ function BeanForm<T extends string>({
       </Section>
 
       {state.formError ? (
-        <p className="text-body text-destructive">{state.formError}</p>
+        <p role="alert" className="text-body text-destructive">
+          {state.formError}
+        </p>
       ) : state.fieldErrors ? (
-        <p className="text-body text-destructive">{t.fixErrors}</p>
+        <p role="alert" className="text-body text-destructive">
+          {t.fixErrors}
+        </p>
       ) : null}
       <div className="text-body flex items-center gap-8">
-        <TextButton type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? t.saving : bean ? t.saveChanges : t.saveBean}
-        </TextButton>
+        </Button>
         <Link
           href={cancelHref}
           className="text-muted-foreground hover:text-foreground underline underline-offset-4"

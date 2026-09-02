@@ -3,7 +3,7 @@
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { TextButton } from "@/components/text-button"
+import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 
 import { setPasswordAction } from "./set-password-action"
@@ -61,13 +61,17 @@ function SetPasswordForm() {
         minLength={8}
         required
       />
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
       {done ? (
         <p className="text-body text-muted-foreground">Password set.</p>
       ) : null}
-      <TextButton type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Set password"}
-      </TextButton>
+      </Button>
     </form>
   )
 }

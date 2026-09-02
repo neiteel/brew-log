@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { TextButton } from "@/components/text-button"
+import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
@@ -62,10 +62,14 @@ function SignupForm() {
         minLength={8}
         required
       />
-      {error ? <p className="text-body text-destructive">{error}</p> : null}
-      <TextButton type="submit" disabled={pending}>
+      {error ? (
+        <p role="alert" className="text-body text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <Button type="submit" disabled={pending}>
         {pending ? "Creating account…" : "Create account"}
-      </TextButton>
+      </Button>
     </form>
   )
 }

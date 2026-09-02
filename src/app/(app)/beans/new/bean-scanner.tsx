@@ -4,6 +4,7 @@ import type { BeanScanFields } from "../scan"
 
 import { useRef, useState } from "react"
 
+import { Button } from "@/components/button"
 import { cn } from "@/lib/utils"
 
 import { scanBeanPhoto } from "../scan"
@@ -126,15 +127,15 @@ function BeanScanner({
       </div>
 
       <div className="text-body flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button
+        <Button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={disabled}
-          className="border-foreground text-foreground hover:bg-foreground hover:text-background disabled:text-muted-foreground disabled:border-border border px-4 py-2 font-medium transition-colors disabled:hover:bg-transparent"
+          aria-busy={working}
         >
           {working ? "Reading photo…" : "Scan bag photo"}
-        </button>
-        <span className="text-small text-muted-foreground">
+        </Button>
+        <span role="status" className="text-small text-muted-foreground">
           {working
             ? "This can take a few seconds."
             : `${remaining} of ${limit} scans left this month`}
@@ -150,7 +151,9 @@ function BeanScanner({
       />
 
       {status === "error" && error ? (
-        <p className="text-small text-destructive">{error}</p>
+        <p role="alert" className="text-small text-destructive">
+          {error}
+        </p>
       ) : null}
     </div>
   )
