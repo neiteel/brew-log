@@ -4,6 +4,17 @@ import prettier from "eslint-config-prettier/flat"
 import checkFile from "eslint-plugin-check-file"
 
 const eslintConfig = [
+  {
+    // Vendored agent tooling. Already gitignored, but ESLint's flat config
+    // does not read .gitignore, so `pnpm lint` was reporting ~2.4k errors
+    // from code this project does not own or ship.
+    ignores: [
+      ".claude/skills/**",
+      ".agents/skills/**",
+      ".github/skills/**",
+      ".codex/**",
+    ],
+  },
   ...nextVitals,
   ...nextTs,
   prettier,
