@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T00:00:00.000Z",
+  "title": "Design System: Brew.log",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "annotation-gray": {
+        "role": "neutral",
+        "displayName": "Annotation Gray",
+        "canonical": "color-mix(in oklch, oklch(0.145 0 0) 58%, transparent)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "rule-gray": {
+        "role": "neutral",
+        "displayName": "Rule Gray",
+        "canonical": "color-mix(in oklch, oklch(0.145 0 0) 46%, transparent)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "hairline-gray": {
+        "role": "neutral",
+        "displayName": "Hairline Gray",
+        "canonical": "color-mix(in oklch, oklch(0.145 0 0) 10%, transparent)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "color-mix(in oklch, oklch(0.145 0 0) 4%, transparent)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d4d4d4", "#eeeeee"]
+      },
+      "correction-red": {
+        "role": "tertiary",
+        "displayName": "Correction Red",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": ["#300000", "#5f0000", "#920000", "#c80000", "#f5302f", "#ff7165", "#ffa697", "#ffc8b9"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Graphical numbers only, never a heading element. One per page at most — in practice a brew's ratio." },
+      "headline": { "displayName": "Headline", "purpose": "The page title. One per page." },
+      "title": { "displayName": "Title", "purpose": "Section headings and recipe figure values. Same step in read and write contexts." },
+      "subtitle": { "displayName": "Subtitle", "purpose": "List-row titles." },
+      "body": { "displayName": "Body", "purpose": "Paragraphs, data rows, field labels, form controls. 16px is a mobile floor — iOS Safari force-zooms focused inputs below it." },
+      "label": { "displayName": "Label", "purpose": "Meta text, hints, dates, quota lines. Uppercase with 0.08em tracking when used as a page kicker." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "state-transition", "value": "transition-property: color, background-color, border-color; duration 150ms", "purpose": "The only motion in the product. Color-only state changes on links, buttons, radios, inputs and scale segments. No transforms, no entrances, no scroll reveals — which is also why no reduced-motion override is needed." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "shell-max", "value": "1500px" },
+      { "name": "data-row-measure", "value": "832px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The commit action — saving a record, creating an account, changing a password. Inverts completely on hover.",
+      "html": "<button class=\"ds-btn-primary\">Save brew</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; font-weight: 500; color: var(--foreground, #0a0a0a); background: transparent; border: 1px solid var(--foreground, #0a0a0a); border-radius: 0; padding: 8px 16px; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s; } .ds-btn-primary:hover { background: var(--foreground, #0a0a0a); color: var(--background, #fff); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ring, #0a0a0a); outline-offset: 2px; } .ds-btn-primary:disabled { border-color: #e7e7e7; color: #717171; cursor: default; background: transparent; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "An alternative route to the same destination, not a second decision. Currently only the Google OAuth row.",
+      "html": "<button class=\"ds-btn-quiet\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" aria-hidden=\"true\"><path fill=\"#4285F4\" d=\"M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z\"/><path fill=\"#34A853\" d=\"M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.02-3.7H.96v2.33A9 9 0 0 0 9 18Z\"/><path fill=\"#FBBC05\" d=\"M3.98 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.02-2.33Z\"/><path fill=\"#EA4335\" d=\"M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.42 0 9 0A9 9 0 0 0 .96 4.95l3.02 2.33C4.68 5.16 6.66 3.58 9 3.58Z\"/></svg>Continue with Google</button>",
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 100%; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; font-weight: 500; color: var(--foreground, #0a0a0a); background: transparent; border: 1px solid #8e8e8e; border-radius: 0; padding: 12px 16px; cursor: pointer; transition: background-color .15s; } .ds-btn-quiet:hover { background: #f5f5f5; } .ds-btn-quiet:focus-visible { outline: 2px solid var(--ring, #0a0a0a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "text-button",
+      "description": "Navigation, utilities and destructive actions — sign out, export, cancel, delete. Deliberately not the most prominent thing on its page.",
+      "html": "<button class=\"ds-text-button\">Export data (JSON)</button>",
+      "css": ".ds-text-button { font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; font-weight: 500; color: var(--foreground, #0a0a0a); background: none; border: none; padding: 0; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; } .ds-text-button:hover { color: #717171; } .ds-text-button:focus-visible { outline: 2px solid var(--ring, #0a0a0a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Solid ink label above, transparent field with a load-bearing Rule Gray border, persistent gray hint below. Focus inks the border rather than drawing a ring.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-dose\">Dose (g)</label><input class=\"ds-field-input\" id=\"ds-dose\" placeholder=\"18\"><p class=\"ds-field-hint\">mm:ss or seconds</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; max-width: 20rem; } .ds-field-label { font-weight: 500; color: var(--foreground, #0a0a0a); } .ds-field-input { width: 100%; background: transparent; color: var(--foreground, #0a0a0a); border: 1px solid #8e8e8e; border-radius: 0; padding: 8px 12px; outline: none; font: inherit; transition: border-color .15s; } .ds-field-input::placeholder { color: #717171; } .ds-field-input:focus { border-color: var(--foreground, #0a0a0a); } .ds-field-hint { font-size: 0.8125rem; line-height: 1.4; letter-spacing: normal; color: #717171; margin: 0; }"
+    },
+    {
+      "name": "Data Row",
+      "kind": "custom",
+      "refersTo": "data-row",
+      "description": "The system's workhorse for read-only records: gray parenthetical label, ink value, optional gray detail, on a decorative hairline within the 832px measure.",
+      "html": "<div class=\"ds-row\"><p class=\"ds-row-label\">(Origin)</p><p class=\"ds-row-value\">Kenya</p><p class=\"ds-row-detail\">Kiambu</p></div>",
+      "css": ".ds-row { display: grid; grid-template-columns: 8rem minmax(0,16rem) 1fr; align-items: baseline; column-gap: 20px; max-width: 52rem; padding: 12px 0; border-bottom: 1px solid #e7e7e7; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; } .ds-row p { margin: 0; } .ds-row-label { color: #717171; } .ds-row-value { color: var(--foreground, #0a0a0a); overflow-wrap: anywhere; } .ds-row-detail { color: #717171; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Segmented Scale",
+      "kind": "custom",
+      "refersTo": "data-row",
+      "description": "Signature component. Ten segments, ink when filled and Rule Gray outline when empty — the empty half is the data, it says the scale runs to ten. Same anatomy for display and input; as an input each segment keeps a 14px bar inside a 24px hit area.",
+      "html": "<div class=\"ds-scale\"><p class=\"ds-scale-label\">(Acidity)</p><div class=\"ds-scale-bar\"><span class=\"on\"></span><span class=\"on\"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><p class=\"ds-scale-value\">2</p></div>",
+      "css": ".ds-scale { display: grid; grid-template-columns: 8rem 1fr 2.5rem; align-items: center; column-gap: 20px; max-width: 52rem; padding: 12px 0; border-bottom: 1px solid #e7e7e7; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; } .ds-scale p { margin: 0; } .ds-scale-label { color: #717171; } .ds-scale-bar { display: flex; gap: 4px; } .ds-scale-bar span { flex: 1; height: 14px; border: 1px solid #8e8e8e; } .ds-scale-bar span.on { background: var(--foreground, #0a0a0a); border-color: var(--foreground, #0a0a0a); } .ds-scale-value { text-align: right; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "List Row",
+      "kind": "card",
+      "refersTo": "data-row",
+      "description": "A journal entry: em-dash subtitle inside the title line so the row reads as one phrase but scans as two fields. The date ships at every width — it is the list's ordering principle.",
+      "html": "<a class=\"ds-list-row\" href=\"#\"><p class=\"ds-list-date\">2 Jul 2026</p><p class=\"ds-list-title\">V60 <span>— Ibis</span></p><p class=\"ds-list-meta\">18 g · 1:16.7 · 26 clicks</p></a>",
+      "css": ".ds-list-row { display: grid; grid-template-columns: 7rem 1fr auto; align-items: baseline; column-gap: 20px; padding: 16px 0; border-bottom: 1px solid #e7e7e7; text-decoration: none; font-family: 'Inter Tight', system-ui, sans-serif; } .ds-list-row p { margin: 0; } .ds-list-date { font-size: 0.8125rem; line-height: 1.4; color: #717171; } .ds-list-title { font-size: 1.25rem; line-height: 1.4; font-weight: 500; color: var(--foreground, #0a0a0a); } .ds-list-title span { color: #717171; font-weight: 400; } .ds-list-meta { font-size: 1rem; letter-spacing: -0.015em; color: #717171; font-variant-numeric: tabular-nums; } .ds-list-row:hover .ds-list-title { text-decoration: underline; text-underline-offset: 4px; } .ds-list-row:focus-visible { outline: 2px solid var(--ring, #0a0a0a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "text-button",
+      "description": "Body-size text links, 32px apart. Active route underlined; hover fades to Annotation Gray and never below it.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" class=\"is-active\">Journal</a><a href=\"#\">Explore</a><a href=\"#\">New Brew</a><a href=\"#\">Settings</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 32px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; } .ds-nav a { color: var(--foreground, #0a0a0a); text-decoration: none; transition: color .15s; } .ds-nav a:hover { color: #717171; } .ds-nav a.is-active { text-decoration: underline; text-underline-offset: 4px; } .ds-nav a:focus-visible { outline: 2px solid var(--ring, #0a0a0a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Display Figure",
+      "kind": "custom",
+      "refersTo": "data-row",
+      "description": "The clearest expression of the system: the one number that decides the next cup, with a quiet parenthetical label above and the unit demoted to gray inside the numeral. Four levels of hierarchy, zero color.",
+      "html": "<div class=\"ds-figure\"><p class=\"ds-figure-label\">(Ratio)</p><p class=\"ds-figure-value\">1:16.7</p></div>",
+      "css": ".ds-figure { font-family: 'Inter Tight', system-ui, sans-serif; } .ds-figure p { margin: 0; } .ds-figure-label { font-size: 0.8125rem; line-height: 1.4; color: #717171; margin-bottom: 8px; } .ds-figure-value { font-size: clamp(4rem, 8vw, 7.5rem); line-height: 1; letter-spacing: -0.02em; font-weight: 500; color: var(--foreground, #0a0a0a); font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lab Notebook",
+    "overview": "Brew.log is a lab notebook for coffee. The parameters are the content: dose, ratio, temperature, grind, time, and a five-axis taste profile. Everything the interface does is in service of two questions — can I reproduce this cup, and what do I change next time. Typography and rules do all the work; there is no color to fall back on, and that constraint is the point. When four levels of hierarchy have to come out of one ink and three grays, every decision has to be deliberate.\n\nThe system is near-monochrome by commitment, not by austerity fashion. Ink on paper, three functional grays, and one red reserved for correction. Density is generous at the chapter level and tight inside a record: a page breathes between its sections and then packs its figures close, because a recipe is read as a block, not as a list. Data rows are measured (832px) while headings run the full width of the shell — the hairline ends where the content ends, and a rule that outruns its content reads as a row that failed to load.\n\nThe clearest expression of the whole system is a brew's ratio: 1:16.7 at up to 120px, a quiet (Ratio) label above it, and the unit inside the number set in gray. Four levels of hierarchy, zero color. Anything new should be able to justify itself the same way.",
+    "keyCharacteristics": [
+      "One ink, three grays, one correction red — no accent color exists",
+      "Hierarchy built from type size, weight, and gray level only",
+      "Hairline rules and whitespace instead of cards, shadows, or fills",
+      "Figures are foreground; labels are demoted into gray parentheses",
+      "Sharp corners everywhere except the radio pip",
+      "Traditional Chinese and English are equal-tier, with their own typographic metrics"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "There is no accent color and none may be introduced. If something needs to stand out, it gets more size, more weight, or a darker gray — never a hue. The single exception already spent is Correction Red, and Google's mark on the OAuth button, which is a third-party brand asset and not part of this palette.", "section": "colors" },
+      { "name": "The Two Weights Rule", "body": "Every border is either decorative (Hairline Gray, 10%) or load-bearing (Rule Gray, 46%). Before styling a border, ask whether it encodes information or identifies a control. If yes it must clear 3:1 and use Rule Gray. If it only separates, it uses Hairline Gray. There is no third weight.", "section": "colors" },
+      { "name": "The Single Scale Rule", "body": "Six steps exist and nothing else. Never reach for a raw utility size (text-3xl, text-sm) — if a size seems missing, the design is wrong, not the scale. The one sanctioned exception is the Brew.log wordmark, which is a logotype sized to itself and carries a comment saying so.", "section": "typography" },
+      { "name": "The Han Metrics Rule", "body": "Traditional Chinese gets its own metrics, applied via :lang(zh-Hant): letter-spacing returns to normal at every size, body line-height opens from 1.45 to 1.75, and label from 1.4 to 1.6. Han glyphs fill their em box and have no ascenders or descenders to create optical leading, so Latin's negative tracking closes their counters and Latin's leading reads cramped. Any new type role must set both metrics or it is only half-designed.", "section": "typography" },
+      { "name": "The Gray Parenthesis Rule", "body": "A read-only field label is demoted by wrapping it in gray parentheses — (Dose), (Ratio), (Cupping) — while its value stays ink. This is the system's signature and it belongs to read contexts only. Data-entry forms use a solid high-contrast label above the control instead, because a fill target needs a label you can find before you have a value.", "section": "typography" },
+      { "name": "The Content-Ends-The-Rule Rule", "body": "A hairline stops where its content stops, or the content reaches the hairline. A 1400px rule holding nine pixels of ink reads as a broken row, not a spare one. When a row cannot fill its width, cap the measure instead of stretching the content.", "section": "layout" },
+      { "name": "The No-Shadow Rule", "body": "Never add a box-shadow, a card container, or a tinted panel to create grouping or emphasis. This is not a default that a brief can override — it is the system. If content needs separation, use space, a hairline, or a heading. The two dashed-border panels marking AI surfaces are the only enclosures in the product, and they are a deliberate signal that a machine wrote what is inside, not a depth device.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build hierarchy from the six type steps and the three grays. Four levels without color is the demonstrated ceiling and the standard to meet.",
+      "Do keep secondary text at or above 4.5:1 (Annotation Gray, #717171) and load-bearing borders at or above 3:1 (Rule Gray, #8e8e8e).",
+      "Do give every interactive target at least 24x24px, and reserve the 2px ink focus ring at 2px offset for every control that is not an input.",
+      "Do end a hairline where its content ends. Cap the measure at 832px for data rows rather than stretching content across 1500px.",
+      "Do size the gap to the section: 144px between chapters, 48px around a section that holds one line.",
+      "Do set both letter-spacing and line-height for zh-Hant whenever a new type role is added.",
+      "Do reserve Primary buttons for actions that write something. If everything is a button, nothing is.",
+      "Do state limits as facts. Quotas exist because the product runs at zero cost; they are never framed as an upgrade prompt."
+    ],
+    "donts": [
+      "Don't introduce an accent color, a gradient, or a tint. There is one ink, three grays, and one red.",
+      "Don't add a shadow, a card, or a tinted panel. Grouping comes from space, hairlines, and headings.",
+      "Don't use a raw type utility (text-3xl, text-sm, text-2xl). Six steps exist; the wordmark is the only documented exception.",
+      "Don't round a corner. The radio pip is the only circle.",
+      "Don't let a hover state reduce contrast below 4.5:1. Fading a link when it is pointed at inverts the affordance.",
+      "Don't use Hairline Gray (#e7e7e7) for anything that encodes data or outlines a control — at 1.24:1 it is invisible, and the unfilled half of a scale is data.",
+      "Don't use gray parentheses as a form label. That treatment belongs to read-only rows; entry fields get a solid ink label above the control.",
+      "Don't render a missing value as zero. On a 0-10 scale, 0 is a real score and means the opposite of 'not recorded' — use an em dash.",
+      "Don't build a card grid, a KPI tile, a progress ring, or a trend chart. This is a notebook, not a dashboard."
+    ]
+  }
+}
