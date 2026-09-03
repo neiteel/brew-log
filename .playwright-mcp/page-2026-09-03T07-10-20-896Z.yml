@@ -1,0 +1,118 @@
+- generic [active] [ref=f30e1]:
+  - generic [ref=f30e2]:
+    - banner [ref=f30e3]:
+      - link "Brew.log" [ref=f30e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f30e5]:
+        - link "Journal" [ref=f30e6] [cursor=pointer]:
+          - /url: /journal
+        - link "Explore" [ref=f30e7] [cursor=pointer]:
+          - /url: /explore
+        - link "New Brew" [ref=f30e8] [cursor=pointer]:
+          - /url: /brews/new
+        - link "Settings" [ref=f30e9] [cursor=pointer]:
+          - /url: /settings
+    - main [ref=f30e10]:
+      - generic [ref=f30e11]:
+        - generic [ref=f30e12]:
+          - generic [ref=f30e13]:
+            - paragraph [ref=f30e14]:
+              - text: Brew — 19 Aug 2026 ·
+              - link "Test User" [ref=f30e15] [cursor=pointer]:
+                - /url: /u/test
+            - 'heading "AeroPress — Finca El Paraíso #19" [level=1] [ref=f30e16]':
+              - text: AeroPress
+              - generic [ref=f30e17]: "— Finca El Paraíso #19"
+            - paragraph [ref=f30e18]: Onyx Coffee Lab, United States
+          - paragraph [ref=f30e19]:
+            - generic [ref=f30e20]: (Bean)
+            - text: Kenya · Anaerobic · Medium roast · Blackcurrant, Grapefruit, Brown Sugar
+        - generic [ref=f30e21]:
+          - generic [ref=f30e22]:
+            - heading "Recipe" [level=2] [ref=f30e23]
+            - paragraph [ref=f30e24]:
+              - generic [ref=f30e25]: (Ratio)
+            - paragraph [ref=f30e26]: 1:17.0
+          - generic [ref=f30e27]:
+            - generic [ref=f30e28]:
+              - paragraph [ref=f30e29]:
+                - generic [ref=f30e30]: (Dose)
+              - paragraph [ref=f30e31]:
+                - text: "19"
+                - generic [ref=f30e32]: g
+            - generic [ref=f30e33]:
+              - paragraph [ref=f30e34]:
+                - generic [ref=f30e35]: (Water)
+              - paragraph [ref=f30e36]:
+                - text: "323"
+                - generic [ref=f30e37]: g
+            - generic [ref=f30e38]:
+              - paragraph [ref=f30e39]:
+                - generic [ref=f30e40]: (Grind)
+              - paragraph [ref=f30e41]: 20 clicks
+              - paragraph [ref=f30e42]: Fellow Ode
+            - generic [ref=f30e43]:
+              - paragraph [ref=f30e44]:
+                - generic [ref=f30e45]: (Temperature)
+              - paragraph [ref=f30e46]:
+                - text: "92"
+                - generic [ref=f30e47]: °C
+            - generic [ref=f30e48]:
+              - paragraph [ref=f30e49]:
+                - generic [ref=f30e50]: (Time)
+              - paragraph [ref=f30e51]: 2:34
+        - generic [ref=f30e52]:
+          - heading "Taste" [level=2] [ref=f30e53]
+          - generic [ref=f30e54]:
+            - paragraph [ref=f30e55]:
+              - generic [ref=f30e56]: (Rating)
+            - paragraph [ref=f30e57]: 4/10
+          - generic [ref=f30e58]:
+            - generic [ref=f30e59]:
+              - generic [ref=f30e60]:
+                - paragraph [ref=f30e61]:
+                  - generic [ref=f30e62]: (Aroma)
+                - paragraph [ref=f30e74]:
+                  - text: "9"
+                  - generic [ref=f30e75]: / 10
+              - generic [ref=f30e76]:
+                - paragraph [ref=f30e77]:
+                  - generic [ref=f30e78]: (Sweetness)
+                - paragraph [ref=f30e90]:
+                  - text: "5"
+                  - generic [ref=f30e91]: / 10
+              - generic [ref=f30e92]:
+                - paragraph [ref=f30e93]:
+                  - generic [ref=f30e94]: (Acidity)
+                - paragraph [ref=f30e106]:
+                  - text: "5"
+                  - generic [ref=f30e107]: / 10
+              - generic [ref=f30e108]:
+                - paragraph [ref=f30e109]:
+                  - generic [ref=f30e110]: (Bitterness)
+                - paragraph [ref=f30e122]:
+                  - text: "8"
+                  - generic [ref=f30e123]: / 10
+              - generic [ref=f30e124]:
+                - paragraph [ref=f30e125]:
+                  - generic [ref=f30e126]: (Body)
+                - paragraph [ref=f30e138]:
+                  - text: "6"
+                  - generic [ref=f30e139]: / 10
+            - generic [ref=f30e140]:
+              - paragraph [ref=f30e141]:
+                - generic [ref=f30e142]: (Notes)
+              - paragraph [ref=f30e143]: Sweetness carries all the way through the cup; would keep this recipe.
+        - generic [ref=f30e145]:
+          - heading "Community" [level=2] [ref=f30e146]
+          - generic [ref=f30e147]:
+            - generic [ref=f30e148]: No ratings yet
+            - generic [ref=f30e150]:
+              - paragraph [ref=f30e151]: Rate this brew
+              - radiogroup "Rate this brew" [ref=f30e153]:
+                - radio "1 star" [ref=f30e155]
+                - radio "2 stars" [ref=f30e163]
+                - radio "3 stars" [ref=f30e171]
+                - radio "4 stars" [ref=f30e179]
+                - radio "5 stars" [ref=f30e187]
+  - button "Open Next.js Dev Tools" [ref=f30e199] [cursor=pointer]

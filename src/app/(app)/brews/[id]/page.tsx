@@ -65,8 +65,6 @@ export default async function BrewPage({
 
   const espresso = isEspresso(brew.method)
   const ratio = brewRatio(brew)
-  // "1:16.7" splits into a gray basis and an ink value; see the display block.
-  const [ratioBasis, ratioValue] = ratio ? ratio.split(":") : []
   const hasTaste =
     brew.tasteAroma != null ||
     brew.tasteSweetness != null ||
@@ -190,38 +188,26 @@ export default async function BrewPage({
               <p className="text-small">
                 <Paren>{dict.brew.ratio}</Paren>
               </p>
-              {/* `1:` is the unit, and the system's north star sets the unit
-                  inside the number in gray — that gray is the fourth level of
-                  hierarchy the whole palette is argued from. All-ink shipped
-                  three. */}
-              <p className="text-display font-medium tabular-nums">
-                <span className="text-muted-foreground">{ratioBasis}:</span>
-                {ratioValue}
-              </p>
+              <p className="text-display font-medium tabular-nums">{ratio}</p>
             </div>
           ) : (
             <h2 className="text-h2 font-medium">{dict.brew.recipe}</h2>
           )}
-          {/* The figures are data, so they end where the taste rows end: left
+          {/* The figures are data, so they end where the taste rows end. Left
             unmeasured they spread to 1190px while the hairlines below stop at
             832px, which puts two right edges inside one record.
 
-            Content-sized on desktop rather than equal columns. The set is
-            always 3-7 items and their widths are not alike: five figures
-            measured 76/99/146/95/78px, so equal columns handed each 150px —
-            starving `22 clicks` down to 4px of slack before the gap while
-            `16 g` sat on 74px of dead space, which is what pushed the grind
-            setting up against the temperature. Total content is 494px inside
-            an 832px measure, so there was never a shortage; the columns were
-            just the wrong shape. Flex packs them to content and wraps when a
-            record really is too wide, instead of orphaning a figure into a
-            row of empty columns the way a fixed count did.
-
-            Mobile keeps the two-column grid: at 390px the measure is too
-            narrow for content-packing to read as anything but a ragged list. */}
+            Fixed columns, deliberately. Content-sized figures were tried and
+            reverted: sizing each cell to its own content means a cell is as
+            wide as whichever of its label, value or note is widest, so the
+            values stop sharing a column rhythm — a narrow value under a wide
+            label butts against a wide value under a narrow one, which reads
+            tighter than the even columns it replaced even though the gap
+            between cells was larger. A recipe is read as a block, and a block
+            needs its figures on a common vertical. */}
           <div
             className={cn(
-              "grid grid-cols-2 gap-x-5 gap-y-10 md:flex md:flex-wrap md:gap-x-10",
+              "grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4",
               DATA_ROW_MEASURE,
             )}
           >
