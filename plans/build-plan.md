@@ -30,7 +30,7 @@
 - [x] 20. 一鍵匯出沖煮資料（下載式，不開 API）→ [history/20-export-brew-data.md](history/20-export-brew-data.md)。CSV 加值未做；按鈕文案 i18n 歸 feature 17。
 - [x] 21. 參數變成主角（粉水比升為 `text-display`、`?from=` 重複沖煮、豆子頁沖煮列加參數、`generateMetadata`）。
 
-### 未修缺陷（2026-09-02 critique 的殘留）
+### 未修缺陷（2026-09-02 critique 的殘留）— **全部結案（2026-09-03）**
 
 > **已修（2026-09-02，`/impeccable` 四輪 + 一次補修）**：版面節奏與欄寬、動作按鈕層次、
 > 灰字 3.74→**4.88:1**、focus ring 1.36→**19.80:1**、placeholder 1.48→**4.88:1**、
@@ -58,8 +58,12 @@
   - **未解**：375px 下計數刻度約 13px 寬，仍低於 24×24。十一個目標放不進手機寬度是這個刻度形態的先天限制，要修得改形態。
   - **順手發現沒動**：`scale-input.tsx` 用 `Paren` 當表單標籤，與 `DESIGN.md` 的 "Don't use gray parentheses as a form label" 相衝突——那是視覺決定，不是鍵盤或語意問題。
 
-- [ ] **E. 額度文案位置** → **`/impeccable layout`**（是層級問題，不是文案問題）
-  文案本身完全合規（陳述事實、零升級誘導，符合 PRODUCT.md 原則 3，**不要改文案**，也不要用 `/impeccable clarify`），但 `brews/new/page.tsx` 把「42 of 50 brews used」放在副標——在使用者正要記錄一杯咖啡時把倒數推到臉上。→ 移到 Settings，或只在超過約 80% 時顯示。
+- [x] **E. 額度文案位置**（2026-09-02，commit `7b599bc`「fix(ui): show the quota only when it is close」，當時漏勾，2026-09-03 補記）
+  文案本身完全合規（陳述事實、零升級誘導，符合 PRODUCT.md 原則 3），問題在位置。
+  - 走的是「只在超過約 80% 時顯示」那條，不是「移到 Settings」。`src/lib/limits.ts` 新增 `QUOTA_NOTICE_AT = 0.8` 與 `nearQuota()`，把理由寫在 doc comment 裡。
+  - **兩個入口都改了**：`brews/new/page.tsx`（40/50 起）與 `beans/new/page.tsx`（8/10 起）——後者本條原本沒點名，但犯的是同一個錯。
+  - **文案一字未動**，也沒動 `/impeccable clarify`。
+  - Settings 目前完全不顯示紀錄額度（AI 額度也不顯示）。這是刻意的 OR 分支，不是遺漏；哪天想讓使用者隨時查得到用量，再開一條。
 
 > **修改時不要破壞**：選填語意端到端貫徹（`actions.ts:21-33`）、AI 快取在編輯時正確失效（`actions.ts:203`）、即時衍生粉水比／萃取率（`brew-form.tsx:100-107`）。
 
