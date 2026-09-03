@@ -75,6 +75,22 @@ export const auth = betterAuth({
       "/sign-up/email": { window: 3600, max: 5 },
     },
   },
+  session: {
+    // Rehydrate session + user from a signed cookie instead of a round-trip to
+    // secondary storage on every request. Without it each authenticated
+    // request costs one Upstash GET (measured: 1 per page render).
+    //
+    // The cookie serves *rendering* only — identity, `locale`, and any future
+    // plan badge. Quota ceilings and usage are always read fresh from the DB
+    // (`lib/limits.ts`, `brewAdviceUsage`, `beanScanUsage`), never from the
+    // session object, so a stale cookie can never buy extra quota.
+    //
+    // Trade-off: a session revoked server-side (`revokeSessionsOnPasswordReset`)
+    // stays renderable until the cookie expires, so `maxAge` is the invalidation
+    // window. A user's *own* changes are immediate — Better Auth rewrites this
+    // cookie inside `updateUser`, `changePassword` and email verification.
+    cookieCache: { enabled: true, maxAge: 300 },
+  },
   user: {
     additionalFields: {
       // UI language preference. Included on the session user; set via

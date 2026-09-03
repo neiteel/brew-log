@@ -19,12 +19,13 @@
 - [x] 15. i18n 繁中（en / zh-Hant）→ [history/15-i18n-zh-hant.md](history/15-i18n-zh-hant.md)
 - [x] 16. Perf：fetching / cache 優化（getSession 去重 + brew 詳情頁併行 + 清未用依賴）→ [history/16-perf-fetching-cache.md](history/16-perf-fetching-cache.md)
 - [x] 17. i18n 後續鋪設（全站 chrome、訪客語系後備、日期/enum/驗證訊息在地化）→ [history/23-i18n-rollout.md](history/23-i18n-rollout.md)
-- [ ] 18. Better Auth `session.cookieCache`（跨 request 省 session DB 查詢；建議與付費分級一起做）。目前未開，`auth.api.getSession` 每次查 DB；feature 16 的 `React.cache` 只解決同一 request 內的重複。啟用要點：
-  - `session.cookieCache: { enabled: true, maxAge: 60~300 }`，maxAge 短一點把 staleness 窗壓小。
-  - **鐵則**：cookie 只服務渲染（身分／`locale`／方案徽章）；**額度上限與用量一律讀 DB**。用量本來就即時查 DB（`countBeans/countBrews`、`brewAdviceUsage`、`bean_scan_usage`），不受影響。
-  - **i18n 小修（一行）**：[language-form.tsx](<../src/app/(app)/settings/language-form.tsx>) 在 `updateUser({ locale })` 後、`router.refresh()` 前加 `await authClient.getSession({ query: { disableCookieCache: true } })`，否則 refresh 讀到舊 locale 的快取 cookie。i18n 架構不需改。
-  - **付費分級把關**：tier 放 subscription 表或 user 欄位皆可，但把關的 server action（`createBrew`/`askBrewMaster`/`scanBeanPhoto`）要 fresh 讀 tier（查 DB 或 `getSession({ query: { disableCookieCache: true } })`）；升級 webhook 刷新 cookie 讓方案即時生效。
-  - 驗證：改語言即時生效、改密碼登出全裝置的失效窗 ≤ maxAge。
+- [x] 18. Better Auth `session.cookieCache`（跨 request 省一次 session 儲存層來回）→ [history/24-session-cookie-cache.md](history/24-session-cookie-cache.md)（2026-09-03，`feature/session-cookie-cache`）
+  - **本條原本的前提是錯的，已更正**：舊敘述寫「`auth.api.getSession` 每次查 DB」。feature 19 加上 `secondaryStorage` 之後就不成立——`storeSessionInDatabase` 預設 false，session 只存在 Upstash，`findSession` 直接讀 Redis 並回傳 session + user，完全不碰 Postgres。所以省的是**一次 Upstash HTTP round-trip**，不是一次 DB query。實測 1 → 0 次。
+  - **原本指定的「i18n 小修（一行）」不必做**：Better Auth 的 `/update-user`、`/change-password`、`/verify-email` 都會自己用更新後的 user 重寫 cookie。兩個 Settings 表單一行未改。
+  - **鐵則成立且已實測**：cookie 只服務渲染；額度上限與用量一律讀 DB。`MAX_BREWS_PER_USER` 暫調成 1、cookie 完全不變、0 次 Upstash 下仍擋得住。
+  - **失效窗實測 296–306s**（`maxAge: 300`）。`revokeSessionsOnPasswordReset` 從即時變成最多慢 5 分鐘，要縮短改 `maxAge` 一行。
+  - **`refreshCache` 不能開**：會拿 cookie 自己的內容重簽 cookie 而不查儲存層，讓活躍 session 無限續命、繞過撤銷。預設 false，且有 `secondaryStorage` 時被強制關閉。
+  - **付費分級仍待辦**：tier 放 subscription 表或 user 欄位皆可，但把關的 server action（`createBrew`/`askBrewMaster`/`scanBeanPhoto`）要 fresh 讀 tier（查 DB 或 `getSession({ query: { disableCookieCache: true } })`）；升級 webhook 刷新 cookie 讓方案即時生效。
 - [x] 19. AI 濫用防護（AI 功能加 `emailVerified` 把關 + Better Auth `rateLimit` 接 Upstash Redis secondary storage、註冊同 IP 每小時 ≤ 5）→ [history/19-ai-abuse-protection.md](history/19-ai-abuse-protection.md)。上線前置：Resend 網域驗證、Vercel 設 Upstash env（見下方提醒）。
 - [x] 20. 一鍵匯出沖煮資料（下載式，不開 API）→ [history/20-export-brew-data.md](history/20-export-brew-data.md)。CSV 加值未做；按鈕文案 i18n 歸 feature 17。
 - [x] 21. 參數變成主角（粉水比升為 `text-display`、`?from=` 重複沖煮、豆子頁沖煮列加參數、`generateMetadata`）。
