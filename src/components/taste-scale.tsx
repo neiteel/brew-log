@@ -65,7 +65,16 @@ function TasteScale({
                 reads as "Acidity 7" on its own. The aria-label this replaced
                 sat on a <p>, a role that supports no accessible name, and was
                 dropped by assistive tech anyway. */}
-            <p className="tabular-nums md:text-right">{score ?? "—"}</p>
+            <p className="tabular-nums md:text-right">
+              {score ?? "—"}
+              {/* The bar carries the maximum for the eye and is aria-hidden,
+                  so without this the row was read aloud as "9" out of
+                  nothing. Hidden visually because the numeral already sits
+                  against ten visible segments. */}
+              {score != null ? (
+                <span className="sr-only"> / {SCALE_MAX}</span>
+              ) : null}
+            </p>
           </div>
         )
       })}

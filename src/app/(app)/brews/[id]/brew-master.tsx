@@ -5,6 +5,7 @@ import type { Messages } from "@/lib/i18n"
 import { useState } from "react"
 
 import { Button } from "@/components/button"
+import { TextButton } from "@/components/text-button"
 import { fill } from "@/lib/i18n/config"
 
 import { askBrewMaster } from "../advice"
@@ -32,7 +33,11 @@ function BrewMaster({
   const [remaining, setRemaining] = useState(initialRemaining)
 
   const working = status === "working"
-  const depleted = remaining <= 0 && !advice
+  // The quota is spent whether or not an answer is already cached, so a zero
+  // balance disables the control either way. Gating this on `!advice` left
+  // "Regenerate" enabled beside "0 of 5 left this month", where the only
+  // possible outcome was a server refusal.
+  const depleted = remaining <= 0
 
   async function run(force: boolean) {
     setStatus("working")
@@ -65,9 +70,13 @@ function BrewMaster({
   return (
     <div className="border-border space-y-4 border border-dashed p-5 md:p-6">
       {advice ? (
+        // Demoted to annotation gray while a replacement is generating: the
+        // text on screen is about to stop being the answer, and leaving it at
+        // full ink presents last month's advice as this request's result.
         <p
-          role="status"
-          className="text-body text-foreground wrap-anywhere whitespace-pre-wrap"
+          className={`text-body wrap-anywhere whitespace-pre-wrap ${
+            working ? "text-muted-foreground" : "text-foreground"
+          }`}
         >
           {advice}
         </p>
@@ -76,14 +85,29 @@ function BrewMaster({
       )}
 
       <div className="text-body flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Button
-          type="button"
-          onClick={() => run(advice != null)}
-          disabled={working || depleted}
-          aria-busy={working}
-        >
-          {working ? t.thinking : advice ? t.regenerate : t.ask}
-        </Button>
+        {advice ? (
+          // Regenerating replaces an answer rather than writing a new one, so
+          // it is not a commit action and does not get the primary button.
+          <TextButton
+            type="button"
+            onClick={() => {
+              if (window.confirm(t.regenerateConfirm)) run(true)
+            }}
+            disabled={working || depleted}
+            aria-busy={working}
+          >
+            {working ? t.thinking : t.regenerate}
+          </TextButton>
+        ) : (
+          <Button
+            type="button"
+            onClick={() => run(false)}
+            disabled={working || depleted}
+            aria-busy={working}
+          >
+            {working ? t.thinking : t.ask}
+          </Button>
+        )}
         <span role="status" className="text-small text-muted-foreground">
           {working
             ? t.takesSeconds

@@ -101,6 +101,11 @@ export const en = {
     bitterness: "Bitterness",
     body: "Body",
     notes: "Notes",
+    // Shown to the owner when a brew has a recipe but no taste record yet.
+    // A heading over silence reads as a load failure; this says which it is.
+    notScoredBefore: "Not scored yet — ",
+    notScoredLink: "add a taste profile",
+    notScoredAfter: ".",
   },
   // Community star ratings.
   community: {
@@ -172,6 +177,10 @@ export const en = {
     depleted: "Monthly limit reached — resets next month.",
     remaining: "{remaining} of {limit} left this month",
     failed: "Something went wrong. Please try again.",
+    // Regenerating is destructive twice over: it replaces the saved answer and
+    // spends one of the month's generations. Both facts, no persuasion.
+    regenerateConfirm:
+      "Regenerating replaces the saved advice and uses one of this month's generations. Continue?",
   },
   // Page headers + per-user limit prose on the new/edit pages.
   pages: {

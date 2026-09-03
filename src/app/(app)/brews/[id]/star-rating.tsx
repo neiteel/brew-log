@@ -6,8 +6,11 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
 import { Star, StarRow } from "@/components/star-meter"
+import { TextButton } from "@/components/text-button"
 
 import { rateBrew, removeRating } from "./rating-actions"
+
+const STARS = [1, 2, 3, 4, 5]
 
 export function StarRating({
   brewId,
@@ -62,6 +65,8 @@ export function StarRating({
     })
   }
 
+  const groupLabel = optimistic ? labels.yourRating : labels.rateThis
+
   return (
     <div className="space-y-5">
       <div className="flex items-baseline gap-3">
@@ -83,41 +88,65 @@ export function StarRating({
 
       {canRate ? (
         <div className="space-y-2">
-          <p className="text-small text-muted-foreground">
-            {optimistic ? labels.yourRating : labels.rateThis}
-          </p>
+          <p className="text-small text-muted-foreground">{groupLabel}</p>
           <div className="flex items-center gap-3">
+            {/* Five scores is a fixed set, so it is a radio group — the same
+                contract ScaleInput takes for the taste axes. The five
+                `aria-pressed` buttons this replaces announced four of five
+                stars as "not pressed" while they were visibly filled, put five
+                tab stops in the row, and previewed the fill on pointer only.
+                Arrow keys now move and select, so focus previews by definition.
+
+                ponytail: arrowing across the row submits at each stop, since a
+                radio checks as it moves. Each write is an idempotent upsert and
+                the last one wins; debounce it only if the refresh traffic ever
+                shows up. */}
             <span
-              className="flex items-center gap-1"
+              role="radiogroup"
+              aria-label={groupLabel}
+              className="flex items-center"
               onMouseLeave={() => setHover(null)}
             >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
+              {STARS.map((n) => (
+                <label
                   key={n}
-                  type="button"
-                  disabled={pending}
-                  onClick={() => submit(n)}
+                  // The star stays 24px; the hit area grows around it, for a
+                  // phone tapped one-handed at the brewing station.
+                  className="cursor-pointer p-1"
                   onMouseEnter={() => setHover(n)}
-                  aria-label={`${n} ${n === 1 ? labels.starUnit : labels.starUnitPlural}`}
-                  aria-pressed={optimistic === n}
-                  className="cursor-pointer p-0.5 disabled:cursor-default"
                 >
-                  <Star
-                    fill={(hover ?? optimistic ?? 0) >= n ? 1 : 0}
-                    size={24}
+                  <input
+                    type="radio"
+                    name={`rating-${brewId}`}
+                    value={n}
+                    checked={optimistic === n}
+                    // Deliberately not disabled while the write is in flight:
+                    // a disabled element loses focus, which sent the caret to
+                    // <body> on the first arrow key and killed traversal after
+                    // one step. The optimistic value already reflects the pick,
+                    // and a superseding pick is just another upsert.
+                    aria-label={`${n} ${n === 1 ? labels.starUnit : labels.starUnitPlural}`}
+                    onChange={() => submit(n)}
+                    className="peer sr-only"
                   />
-                </button>
+                  <span className="peer-focus-visible:outline-ring block peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2">
+                    <Star
+                      fill={(hover ?? optimistic ?? 0) >= n ? 1 : 0}
+                      size={24}
+                    />
+                  </span>
+                </label>
               ))}
             </span>
             {optimistic ? (
-              <button
+              <TextButton
                 type="button"
                 onClick={clear}
                 disabled={pending}
-                className="text-small text-muted-foreground hover:text-foreground underline underline-offset-4 disabled:no-underline"
+                className="text-small text-muted-foreground hover:text-foreground"
               >
                 {labels.clear}
-              </button>
+              </TextButton>
             ) : null}
           </div>
           {error ? (

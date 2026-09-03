@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 
 import { eq } from "drizzle-orm"
 
-import { Figure, Paren, Row } from "@/components/field"
+import { DATA_ROW_MEASURE, Figure, Paren, Row } from "@/components/field"
 import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
 import { TasteScale } from "@/components/taste-scale"
@@ -15,6 +15,7 @@ import { getDictionary, getLocale } from "@/lib/i18n"
 import { label } from "@/lib/i18n/config"
 import { getRatingSummary } from "@/lib/ratings"
 import { getSession } from "@/lib/session"
+import { cn } from "@/lib/utils"
 
 import { getBrewAdviceQuota, getCachedBrewAdvice } from "../advice"
 import { BrewMaster } from "./brew-master"
@@ -36,8 +37,13 @@ export async function generateMetadata({
 }) {
   const { id } = await params
   const brew = await getBrew(id)
-  if (!brew) return { title: (await getDictionary()).titles.brew }
-  return { title: `${brew.method} — ${brew.bean.name}` }
+  const dict = await getDictionary()
+  if (!brew) return { title: dict.titles.brew }
+  // The tab has to say the same word the list said, or the two tabs being
+  // compared disagree about what they are.
+  return {
+    title: `${label(dict.enums.methods, brew.method)} — ${brew.bean.name}`,
+  }
 }
 
 export default async function BrewPage({
@@ -66,13 +72,29 @@ export default async function BrewPage({
     brew.tasteBitterness != null ||
     brew.tasteBody != null
 
+  // Every field is optional, so both of these sections can come out empty —
+  // and a heading over nothing reads as a row that failed to load, not as a
+  // record that was left spare. Each section renders only when it has
+  // something to say. `ratio` needs a dose and an output, so it cannot exist
+  // without a figure to sit above.
+  const hasFigures =
+    brew.coffeeG != null ||
+    (espresso ? brew.brewWeightG != null : brew.waterG != null) ||
+    brew.grindSetting != null ||
+    brew.grinder != null ||
+    brew.temperatureC != null ||
+    brew.timeSeconds != null ||
+    brew.tds != null ||
+    brew.extractionYield != null
+  const hasTasteContent = brew.rating != null || hasTaste || Boolean(brew.notes)
+
   // The bean is context here, not the subject: one line of the facts that
   // change how the recipe reads, with the full page a click away.
   const beanFacts = [
     [brew.bean.originCountry, brew.bean.region].filter(Boolean).join(", "),
     brew.bean.process,
     brew.bean.roastLevel
-      ? `${brew.bean.roastLevel} ${dict.bean.roastSuffix}`
+      ? `${label(dict.enums.roastLevels, brew.bean.roastLevel)} ${dict.bean.roastSuffix}`.trim()
       : null,
     brew.bean.flavorNotes,
   ].filter(Boolean)
@@ -125,7 +147,7 @@ export default async function BrewPage({
           }
           title={
             <>
-              {brew.method}{" "}
+              {label(dict.enums.methods, brew.method)}{" "}
               <span className="text-muted-foreground">— {brew.bean.name}</span>
             </>
           }
@@ -154,121 +176,154 @@ export default async function BrewPage({
       {/* The recipe leads: these are the numbers you change to get a different
           cup. The ratio takes the display slot — it's the one figure that
           decides the next brew — and the rest stay foreground, not detail. */}
-      <section className="space-y-10 md:space-y-14">
-        {ratio ? (
-          <div className="space-y-2">
-            <p className="text-small">
-              <Paren>{dict.brew.ratio}</Paren>
-            </p>
-            <p className="text-display font-medium tabular-nums">{ratio}</p>
+      {hasFigures ? (
+        <section className="space-y-10 md:space-y-14">
+          {ratio ? (
+            <div className="space-y-2">
+              <p className="text-small">
+                <Paren>{dict.brew.ratio}</Paren>
+              </p>
+              <p className="text-display font-medium tabular-nums">{ratio}</p>
+            </div>
+          ) : (
+            <h2 className="text-h2 font-medium">{dict.brew.recipe}</h2>
+          )}
+          {/* The figures are data, so they end where the taste rows end. Left
+            unmeasured they spread to 1190px while the hairlines below stop at
+            832px, which puts two right edges inside one record and pushes
+            adjacent facts ~1000px apart. */}
+          <div
+            className={cn(
+              "grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4",
+              DATA_ROW_MEASURE,
+            )}
+          >
+            {brew.coffeeG != null ? (
+              <Figure label={dict.brew.dose} value={brew.coffeeG} unit="g" />
+            ) : null}
+            {espresso
+              ? brew.brewWeightG != null && (
+                  <Figure
+                    label={dict.brew.yield}
+                    value={brew.brewWeightG}
+                    unit="g"
+                  />
+                )
+              : brew.waterG != null && (
+                  <Figure
+                    label={dict.brew.water}
+                    value={brew.waterG}
+                    unit="g"
+                  />
+                )}
+            {brew.grindSetting || brew.grinder ? (
+              <Figure
+                label={dict.brew.grind}
+                value={brew.grindSetting ?? brew.grinder}
+                note={
+                  brew.grindSetting ? (brew.grinder ?? undefined) : undefined
+                }
+              />
+            ) : null}
+            {brew.temperatureC != null ? (
+              <Figure
+                label={dict.brew.temperature}
+                value={brew.temperatureC}
+                unit="°C"
+              />
+            ) : null}
+            {brew.timeSeconds != null ? (
+              <Figure
+                label={dict.brew.time}
+                value={formatTime(brew.timeSeconds)}
+              />
+            ) : null}
+            {brew.tds != null ? (
+              <Figure label="TDS" value={brew.tds} unit="%" />
+            ) : null}
+            {brew.extractionYield != null ? (
+              <Figure
+                label={dict.brew.extraction}
+                value={brew.extractionYield}
+                unit="%"
+              />
+            ) : null}
           </div>
-        ) : (
-          <h2 className="text-h2 font-medium">{dict.brew.recipe}</h2>
-        )}
-        <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
-          {brew.coffeeG != null ? (
-            <Figure label={dict.brew.dose} value={brew.coffeeG} unit="g" />
-          ) : null}
-          {espresso
-            ? brew.brewWeightG != null && (
-                <Figure
-                  label={dict.brew.yield}
-                  value={brew.brewWeightG}
-                  unit="g"
-                />
-              )
-            : brew.waterG != null && (
-                <Figure label={dict.brew.water} value={brew.waterG} unit="g" />
-              )}
-          {brew.grindSetting || brew.grinder ? (
-            <Figure
-              label={dict.brew.grind}
-              value={brew.grindSetting ?? brew.grinder}
-              note={brew.grindSetting ? (brew.grinder ?? undefined) : undefined}
-            />
-          ) : null}
-          {brew.temperatureC != null ? (
-            <Figure
-              label={dict.brew.temperature}
-              value={brew.temperatureC}
-              unit="°C"
-            />
-          ) : null}
-          {brew.timeSeconds != null ? (
-            <Figure
-              label={dict.brew.time}
-              value={formatTime(brew.timeSeconds)}
-            />
-          ) : null}
-          {brew.tds != null ? (
-            <Figure label="TDS" value={brew.tds} unit="%" />
-          ) : null}
-          {brew.extractionYield != null ? (
-            <Figure
-              label={dict.brew.extraction}
-              value={brew.extractionYield}
-              unit="%"
-            />
-          ) : null}
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">{dict.taste.heading}</h2>
-        {brew.rating != null ? (
-          <Figure
-            label={dict.taste.rating}
-            value={
-              <>
-                {brew.rating}
-                <span className="text-muted-foreground">/10</span>
-              </>
-            }
-          />
-        ) : null}
-        <div>
-          {hasTaste ? (
-            <TasteScale
-              profile={{
-                aroma: brew.tasteAroma,
-                sweetness: brew.tasteSweetness,
-                acidity: brew.tasteAcidity,
-                bitterness: brew.tasteBitterness,
-                body: brew.tasteBody,
-              }}
-              labels={{
-                aroma: dict.taste.aroma,
-                sweetness: dict.taste.sweetness,
-                acidity: dict.taste.acidity,
-                bitterness: dict.taste.bitterness,
-                body: dict.taste.body,
-              }}
+      {hasTasteContent || isOwner ? (
+        <section className="space-y-8 md:space-y-10">
+          <h2 className="text-h2 font-medium">{dict.taste.heading}</h2>
+          {brew.rating != null ? (
+            <Figure
+              label={dict.taste.rating}
+              value={
+                <>
+                  {brew.rating}
+                  <span className="text-muted-foreground">/10</span>
+                </>
+              }
             />
           ) : null}
-          {brew.notes ? (
-            <Row
-              label={dict.taste.notes}
-              value={<span className="whitespace-pre-line">{brew.notes}</span>}
-            />
-          ) : null}
-        </div>
-        {isOwner ? (
-          <div className="text-body flex flex-wrap items-center gap-x-8 gap-y-3">
-            <Link
-              href={`/brews/new?from=${brew.id}`}
-              className="hover:text-muted-foreground font-medium underline underline-offset-4"
-            >
-              {dict.brew.repeatBrew}
-            </Link>
-            <Link
-              href={`/brews/${brew.id}/edit`}
-              className="text-muted-foreground hover:text-foreground underline underline-offset-4"
-            >
-              {dict.brew.editBrew}
-            </Link>
+          <div>
+            {hasTaste ? (
+              <TasteScale
+                profile={{
+                  aroma: brew.tasteAroma,
+                  sweetness: brew.tasteSweetness,
+                  acidity: brew.tasteAcidity,
+                  bitterness: brew.tasteBitterness,
+                  body: brew.tasteBody,
+                }}
+                labels={{
+                  aroma: dict.taste.aroma,
+                  sweetness: dict.taste.sweetness,
+                  acidity: dict.taste.acidity,
+                  bitterness: dict.taste.bitterness,
+                  body: dict.taste.body,
+                }}
+              />
+            ) : null}
+            {brew.notes ? (
+              <Row
+                label={dict.taste.notes}
+                value={
+                  <span className="whitespace-pre-line">{brew.notes}</span>
+                }
+              />
+            ) : null}
           </div>
-        ) : null}
-      </section>
+          {!hasTasteContent && isOwner ? (
+            <p className="text-body text-muted-foreground">
+              {dict.taste.notScoredBefore}
+              <Link
+                href={`/brews/${brew.id}/edit`}
+                className="hover:text-foreground underline underline-offset-4"
+              >
+                {dict.taste.notScoredLink}
+              </Link>
+              {dict.taste.notScoredAfter}
+            </p>
+          ) : null}
+          {isOwner ? (
+            <div className="text-body flex flex-wrap items-center gap-x-8 gap-y-3">
+              <Link
+                href={`/brews/new?from=${brew.id}`}
+                className="hover:text-muted-foreground font-medium underline underline-offset-4"
+              >
+                {dict.brew.repeatBrew}
+              </Link>
+              <Link
+                href={`/brews/${brew.id}/edit`}
+                className="text-muted-foreground hover:text-foreground underline underline-offset-4"
+              >
+                {dict.brew.editBrew}
+              </Link>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {/* Everything after the record itself. Both of these can be one line —
           an unrated brew's community block is four gray words — so they share

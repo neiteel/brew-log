@@ -11,6 +11,7 @@ import { db } from "@/lib/db"
 import { beans, brews } from "@/lib/db/schema"
 import { brewRatio, externalHref, formatDate } from "@/lib/format"
 import { getDictionary, getLocale } from "@/lib/i18n"
+import { label } from "@/lib/i18n/config"
 import { requireSession } from "@/lib/session"
 
 // Shared by generateMetadata and the page itself — one round trip per request.
@@ -80,7 +81,7 @@ export default async function BeanPage({
               value={bean.process ?? "—"}
               detail={
                 bean.roastLevel
-                  ? `${bean.roastLevel} ${dict.bean.roastSuffix}`
+                  ? `${label(dict.enums.roastLevels, bean.roastLevel)} ${dict.bean.roastSuffix}`.trim()
                   : undefined
               }
             />

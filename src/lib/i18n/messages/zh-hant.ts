@@ -86,6 +86,9 @@ export const zhHant: Messages = {
     bitterness: "苦度",
     body: "醇厚度",
     notes: "筆記",
+    notScoredBefore: "尚未品評 — ",
+    notScoredLink: "補上風味紀錄",
+    notScoredAfter: "。",
   },
   community: {
     heading: "社群評分",
@@ -110,7 +113,9 @@ export const zhHant: Messages = {
     flavor: "風味",
     cupping: "杯測分數",
     roastDate: "烘焙日期",
-    roastSuffix: "烘焙",
+    // 深焙/中焙 already carry 焙, so the level needs no suffix here; call
+    // sites trim, which keeps en's "Dark roast" working off the same shape.
+    roastSuffix: "",
     price: "價格",
     url: "連結",
     moreInfo: "更多資訊",
@@ -153,6 +158,8 @@ export const zhHant: Messages = {
     depleted: "本月額度已用完——下個月重置。",
     remaining: "本月還剩 {remaining} / {limit} 次",
     failed: "出了點狀況，請再試一次。",
+    regenerateConfirm:
+      "重新產生會取代已儲存的建議，並用掉一次本月額度。要繼續嗎？",
   },
   pages: {
     newBrew: "新增沖煮",

@@ -74,6 +74,15 @@
   --text-small: 0.8125rem; /* 13px — meta, captions, footer */
   --text-small--line-height: 1.4;
   --text-small--letter-spacing: normal; /* tapered off display's -2% so 13px meta stays legible */
+  /* The page kicker: label size tracked out, so a category tag reads as a tag
+     rather than as another gray meta line. A role, not a seventh step — same
+     13px as small. It needs its own token because the tracking is the ONLY
+     thing carrying that reading in zh-Hant (uppercase is a no-op on Han), and
+     an arbitrary `tracking-[0.08em]` utility loses to the unlayered Han rules
+     below, which zeroed it. Han tag treatments legitimately track out. */
+  --text-kicker: 0.8125rem;
+  --text-kicker--line-height: 1.4;
+  --text-kicker--letter-spacing: 0.08em;
 }
 
 @layer base {
@@ -117,5 +126,11 @@
   line-height: 1.75;
 }
 :lang(zh-Hant) .text-small {
+  line-height: 1.6;
+}
+/* Deliberately absent from the letter-spacing reset above: the kicker keeps
+   its tracking in Han, because that tracking is what makes it a kicker. Only
+   the leading opens, matching .text-small. */
+:lang(zh-Hant) .text-kicker {
   line-height: 1.6;
 }

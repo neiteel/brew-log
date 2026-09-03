@@ -65,6 +65,13 @@
   - **文案一字未動**，也沒動 `/impeccable clarify`。
   - Settings 目前完全不顯示紀錄額度（AI 額度也不顯示）。這是刻意的 OR 分支，不是遺漏；哪天想讓使用者隨時查得到用量，再開一條。
 
+- [x] **F. Brew 詳細頁 critique P0+P1** → [history/26-brew-detail-critique-p0-p1.md](history/26-brew-detail-critique-p0-p1.md)（2026-09-03，`fix/brew-detail-critique-p0-p1`，走 `/impeccable critique` → `/feature`。23/40 → 28/40）
+  空區塊標題、recipe grid 量幅、enum 在地化、Brew Master 額度與破壞性覆蓋、社群星等改 native radio group。
+  - **順帶修掉一個全站 bug**：`PageHeader` 的 kicker 在 zh-Hant 下 tracking 被 `globals.css` 的 unlayered Han 規則歸零，中文版頁首比英文版少一層階層。新增 `--text-kicker` role 解決，影響全部 10 個 call site。
+  - **兩次「修東西時弄壞東西」**，都只有實際操作才會發現：radio 的 `disabled={pending}` 讓方向鍵導覽只能走一步（被 disable 的元素無法持有焦點）；`TextButton` 漏傳 `disabled:no-underline` 讓額度耗盡的 Regenerate 看起來仍可點。
+  - **未做（複評新發現，已列在 history）**：recipe grid 孤兒列（`md:grid-cols-4` 套在 3–7 項上）、訪客沒有結尾、`notReady` 死路、ratio 缺灰色單位、有 ratio 時配方區塊沒有 `h2`、`(Bean)` 行沒有 measure。
+  - **DESIGN.md line 244 該改**：它說整體評分渲染成十格 bar，但實作用 `Figure`，兩次評估都認為實作比規格好。文件待同步。
+
 > **修改時不要破壞**：選填語意端到端貫徹（`actions.ts:21-33`）、AI 快取在編輯時正確失效（`actions.ts:203`）、即時衍生粉水比／萃取率（`brew-form.tsx:100-107`）。
 
 > **關於 feature 17（i18n 鋪設）**：不要用 impeccable。它是把字串接進既有字典架構，屬於 `/feature` 的範圍。

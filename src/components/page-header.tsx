@@ -7,8 +7,11 @@ import { cn } from "@/lib/utils"
 //
 // The treatment above was documented but never implemented, which is why
 // /brews/new rendered "Brew" and "3 of 50 brews used" as two identical gray
-// lines. Uppercase is a no-op on zh-Hant, so the tracking carries the tag
-// reading in both languages.
+// lines. Uppercase is a no-op on zh-Hant, so the tracking has to carry the tag
+// reading there — which is why this uses the `text-kicker` role rather than a
+// `tracking-[...]` utility. The utility sat in Tailwind's utilities layer and
+// lost to the unlayered `:lang(zh-Hant)` reset, so the zh-Hant kicker measured
+// `letter-spacing: normal` and had neither device.
 function PageHeader({
   kicker,
   title,
@@ -23,9 +26,7 @@ function PageHeader({
   return (
     <header className={cn("space-y-4", className)}>
       {kicker ? (
-        <p className="text-small text-muted-foreground tracking-[0.08em] uppercase">
-          {kicker}
-        </p>
+        <p className="text-kicker text-muted-foreground uppercase">{kicker}</p>
       ) : null}
       <h1 className="text-h1 font-medium wrap-anywhere">{title}</h1>
       {subtitle ? (
