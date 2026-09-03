@@ -65,6 +65,8 @@ export default async function BrewPage({
 
   const espresso = isEspresso(brew.method)
   const ratio = brewRatio(brew)
+  // "1:16.7" splits into a gray basis and an ink value; see the display block.
+  const [ratioBasis, ratioValue] = ratio ? ratio.split(":") : []
   const hasTaste =
     brew.tasteAroma != null ||
     brew.tasteSweetness != null ||
@@ -180,21 +182,39 @@ export default async function BrewPage({
         <section className="space-y-10 md:space-y-14">
           {ratio ? (
             <div className="space-y-2">
+              {/* The recipe is the reason the page exists, so it stays in the
+                  heading outline even when the display figure replaces its
+                  visible heading. Without this the rotor read h1 -> Taste ->
+                  Community and never announced the recipe at all. */}
+              <h2 className="sr-only">{dict.brew.recipe}</h2>
               <p className="text-small">
                 <Paren>{dict.brew.ratio}</Paren>
               </p>
-              <p className="text-display font-medium tabular-nums">{ratio}</p>
+              {/* `1:` is the unit, and the system's north star sets the unit
+                  inside the number in gray — that gray is the fourth level of
+                  hierarchy the whole palette is argued from. All-ink shipped
+                  three. */}
+              <p className="text-display font-medium tabular-nums">
+                <span className="text-muted-foreground">{ratioBasis}:</span>
+                {ratioValue}
+              </p>
             </div>
           ) : (
             <h2 className="text-h2 font-medium">{dict.brew.recipe}</h2>
           )}
-          {/* The figures are data, so they end where the taste rows end. Left
+          {/* The figures are data, so they end where the taste rows end: left
             unmeasured they spread to 1190px while the hairlines below stop at
-            832px, which puts two right edges inside one record and pushes
-            adjacent facts ~1000px apart. */}
+            832px, which puts two right edges inside one record.
+
+            auto-fit rather than a fixed four columns, because the set is
+            always 3-7 items — whichever of dose, water/yield, grind, temp,
+            time, TDS and extraction yield were recorded. Four columns orphaned
+            the fifth figure onto a row of its own, and the grinder note made
+            that cell taller so on mobile `(Time)` sat ~100px below its
+            row-mates. A recipe is read as a block, not as a list. */}
           <div
             className={cn(
-              "grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4",
+              "grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-5 gap-y-10",
               DATA_ROW_MEASURE,
             )}
           >
