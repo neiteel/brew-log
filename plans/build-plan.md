@@ -47,11 +47,16 @@
   - `brews/[id]/page.tsx:231-235` 用 `?? 0` 把未填風味軸渲染成 **0 分**。0 在 0–10 尺度上是合法分數（`schema.ts:69` 驗 `min(0)`），「酸質 0」＝完全沒有酸，是「我沒記」的相反。→ null 時渲染 `—` 並省略長條。（`DESIGN.md` 的 Don'ts 已載入這條原則，但程式碼還沒改。）
   - 修完值得查一次 DB，既有資料可能已被污染。
 
-- [ ] **C. 風味刻度的鍵盤與語意** → **`/impeccable harden`**（觸控高度已修，剩下的是鍵盤與輔助科技）
+- [x] **C. 風味刻度的鍵盤與語意** → [history/25-scale-keyboard-semantics.md](history/25-scale-keyboard-semantics.md)（2026-09-03，`fix/scale-keyboard-semantics`，走 `/impeccable harden`）
   - ~~`scale-input.tsx:37` 從 1 開始 → **0 無法輸入**~~ **已修**（併進 A，見 history/22）：最前面多一個較窄的 0 標記，不佔計數。
   - ~~`taste-scale.tsx:63` 的 `aria-label` 掛在 `<p>` 上~~ **已刪**（併進 A，見 history/22）。
-  - 六軸共 **66 個 tab stop**（0 標記讓每軸多一個）、無方向鍵、無群組語意。
-  - → 換原生 `<input type="range" min="0" max="10">`，或用 `text-input.tsx` 已在用的 Base UI `RadioGroup` 拿 roving tabindex。**注意**：`DESIGN.md` 已把分段刻度列為 signature component，換實作要同步更新它的 Components 章節。
+  - ~~六軸共 **66 個 tab stop**、無方向鍵、無群組語意~~ **已修**：換成一個原生 radio group，每軸 1 站、方向鍵移動即選取、Backspace 清除。
+  - **兩條原本指定的路都沒走**：`<input type="range">` 表達不了「未記錄」（`aria-valuenow` 必填），Base UI `RadioGroup` 還要自己接 roving tabindex。原生 `<input type="radio">` 更低一階，keydown map、roving tabindex、hidden input 三樣都不必寫。
+  - **順手修掉一個沒被列出的 i18n bug**：舊 `aria-label` 是寫死英文句型，zh-Hant 讀者聽到「酸度 7 of 10」。刪掉模板即解。
+  - **實測翻掉的假設**：已勾選的 radio 按 Space **不會**送 `click`，所以滑鼠的「再點一次清除」沒有免費的鍵盤孿生，得自己接 Backspace。
+  - `DESIGN.md` 與 `.impeccable/design.json` 的 Segmented Scale 章節已同步（新增 **The Scale Is A Radio Group Rule**）。
+  - **未解**：375px 下計數刻度約 13px 寬，仍低於 24×24。十一個目標放不進手機寬度是這個刻度形態的先天限制，要修得改形態。
+  - **順手發現沒動**：`scale-input.tsx` 用 `Paren` 當表單標籤，與 `DESIGN.md` 的 "Don't use gray parentheses as a form label" 相衝突——那是視覺決定，不是鍵盤或語意問題。
 
 - [ ] **E. 額度文案位置** → **`/impeccable layout`**（是層級問題，不是文案問題）
   文案本身完全合規（陳述事實、零升級誘導，符合 PRODUCT.md 原則 3，**不要改文案**，也不要用 `/impeccable clarify`），但 `brews/new/page.tsx` 把「42 of 50 brews used」放在副標——在使用者正要記錄一杯咖啡時把倒數推到臉上。→ 移到 Settings，或只在超過約 80% 時顯示。

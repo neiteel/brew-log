@@ -266,6 +266,14 @@ function BrewForm<T extends string>({
 
       <Section label={taste.heading}>
         <div className="md:col-span-12">
+          {/* Stated once above the six rows rather than as six repeated hints:
+              clearing a score is the one thing the segmented bar cannot show,
+              and every axis clears the same way. Sits inside the block, 16px
+              off its first row, so it reads as this group's hint and not as a
+              second section deck. */}
+          <p className="text-small text-muted-foreground mb-4">
+            {taste.scaleHint}
+          </p>
           <ScaleInput
             label={taste.rating}
             name="rating"

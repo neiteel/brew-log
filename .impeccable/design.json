@@ -110,7 +110,7 @@
       "name": "Segmented Scale",
       "kind": "custom",
       "refersTo": "data-row",
-      "description": "Signature component. Ten segments, ink when filled and Rule Gray outline when empty — the empty half is the data, it says the scale runs to ten. Same anatomy for display and input; as an input each segment keeps a 14px bar inside a 24px hit area.",
+      "description": "Signature component. Ten segments, ink when filled and Rule Gray outline when empty — the empty half is the data, it says the scale runs to ten. Same anatomy for display and input; as an input the row is one radio group of native radios, each keeping a 14px bar inside a 24x24 hit area, so the browser supplies one tab stop per axis, arrow-key selection and grouped announcement.",
       "html": "<div class=\"ds-scale\"><p class=\"ds-scale-label\">(Acidity)</p><div class=\"ds-scale-bar\"><span class=\"on\"></span><span class=\"on\"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><p class=\"ds-scale-value\">2</p></div>",
       "css": ".ds-scale { display: grid; grid-template-columns: 8rem 1fr 2.5rem; align-items: center; column-gap: 20px; max-width: 52rem; padding: 12px 0; border-bottom: 1px solid #e7e7e7; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 1rem; line-height: 1.45; letter-spacing: -0.015em; } .ds-scale p { margin: 0; } .ds-scale-label { color: #717171; } .ds-scale-bar { display: flex; gap: 4px; } .ds-scale-bar span { flex: 1; height: 14px; border: 1px solid #8e8e8e; } .ds-scale-bar span.on { background: var(--foreground, #0a0a0a); border-color: var(--foreground, #0a0a0a); } .ds-scale-value { text-align: right; font-variant-numeric: tabular-nums; }"
     },

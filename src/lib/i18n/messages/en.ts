@@ -93,6 +93,7 @@ export const en = {
   // Taste section — display + the brew form's scale inputs.
   taste: {
     heading: "Taste",
+    scaleHint: "Optional. Pick a score again, or press Backspace, to clear it.",
     rating: "Rating",
     aroma: "Aroma",
     sweetness: "Sweetness",

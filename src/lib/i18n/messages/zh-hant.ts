@@ -78,6 +78,7 @@ export const zhHant: Messages = {
   },
   taste: {
     heading: "風味",
+    scaleHint: "選填。再選一次相同刻度，或按 Backspace，即可清除。",
     rating: "評分",
     aroma: "香氣",
     sweetness: "甜度",
