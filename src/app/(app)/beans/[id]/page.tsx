@@ -10,7 +10,7 @@ import { PageShell } from "@/components/page-shell"
 import { db } from "@/lib/db"
 import { beans, brews } from "@/lib/db/schema"
 import { brewRatio, externalHref, formatDate } from "@/lib/format"
-import { getDictionary } from "@/lib/i18n"
+import { getDictionary, getLocale } from "@/lib/i18n"
 import { requireSession } from "@/lib/session"
 
 // Shared by generateMetadata and the page itself — one round trip per request.
@@ -31,7 +31,7 @@ export async function generateMetadata({
   const session = await requireSession()
   const { id } = await params
   const bean = await getBean(id, session.user.id)
-  if (!bean) return { title: "Bean" }
+  if (!bean) return { title: (await getDictionary()).titles.bean }
   return { title: `${bean.name} — ${bean.roastery}` }
 }
 
@@ -41,7 +41,8 @@ export default async function BeanPage({
   params: Promise<{ id: string }>
 }) {
   const session = await requireSession()
-  const dict = getDictionary(session.user.locale)
+  const dict = await getDictionary()
+  const locale = await getLocale()
   const { id } = await params
 
   const bean = await getBean(id, session.user.id)
@@ -50,7 +51,7 @@ export default async function BeanPage({
   return (
     <PageShell>
       <PageHeader
-        kicker={`${dict.bean.addedPrefix} ${formatDate(bean.createdAt)}`}
+        kicker={`${dict.bean.addedPrefix} ${formatDate(bean.createdAt, locale)}`}
         title={
           <>
             {bean.name}{" "}
@@ -96,7 +97,7 @@ export default async function BeanPage({
           {bean.roastDate ? (
             <Row
               label={dict.bean.roastDate}
-              value={formatDate(bean.roastDate)}
+              value={formatDate(bean.roastDate, locale)}
             />
           ) : null}
           {bean.price || bean.weightG != null ? (
@@ -170,7 +171,7 @@ export default async function BeanPage({
                   className="group border-border grid grid-cols-[6.5rem_1fr_auto] items-baseline gap-x-3 gap-y-1 border-b py-4 md:grid-cols-12 md:gap-x-5 md:gap-y-0"
                 >
                   <p className="text-small text-muted-foreground md:col-span-2">
-                    {formatDate(brew.brewedAt)}
+                    {formatDate(brew.brewedAt, locale)}
                   </p>
                   <p className="text-h3 col-start-2 font-medium wrap-anywhere group-hover:underline group-hover:underline-offset-4 md:col-span-3 md:col-start-auto">
                     {brew.method}

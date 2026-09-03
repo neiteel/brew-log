@@ -1,12 +1,14 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useRef, useState } from "react"
 
 import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
-function ChangePasswordForm() {
+function ChangePasswordForm({ t }: { t: Messages["settings"] }) {
   const formRef = useRef<HTMLFormElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
@@ -20,7 +22,7 @@ function ChangePasswordForm() {
     const newPassword = String(form.get("newPassword"))
     const confirm = String(form.get("confirm"))
     if (newPassword !== confirm) {
-      setError("New passwords don't match.")
+      setError(t.passwordMismatch)
       return
     }
     setPending(true)
@@ -33,7 +35,7 @@ function ChangePasswordForm() {
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Could not change password.")
+      setError(error.message ?? t.changePasswordFailed)
       return
     }
     formRef.current?.reset()
@@ -43,14 +45,14 @@ function ChangePasswordForm() {
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="max-w-sm space-y-6">
       <TextField
-        label="Current password"
+        label={t.currentPassword}
         name="currentPassword"
         type="password"
         autoComplete="current-password"
         required
       />
       <TextField
-        label="New password"
+        label={t.newPassword}
         name="newPassword"
         type="password"
         autoComplete="new-password"
@@ -58,7 +60,7 @@ function ChangePasswordForm() {
         required
       />
       <TextField
-        label="Confirm new password"
+        label={t.confirmPassword}
         name="confirm"
         type="password"
         autoComplete="new-password"
@@ -71,12 +73,10 @@ function ChangePasswordForm() {
         </p>
       ) : null}
       {done ? (
-        <p className="text-body text-muted-foreground">
-          Password updated. Other devices have been signed out.
-        </p>
+        <p className="text-body text-muted-foreground">{t.passwordUpdated}</p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Updating…" : "Change password"}
+        {pending ? t.updating : t.changePassword}
       </Button>
     </form>
   )

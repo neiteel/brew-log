@@ -7,11 +7,15 @@ import { PageShell } from "@/components/page-shell"
 import { db } from "@/lib/db"
 import { beans, brews, user } from "@/lib/db/schema"
 import { formatDate } from "@/lib/format"
+import { getDictionary, getLocale } from "@/lib/i18n"
 import { getSession } from "@/lib/session"
 
 export default async function LandingPage() {
   const session = await getSession()
   if (session) redirect("/journal")
+
+  const { landing, nav } = await getDictionary()
+  const locale = await getLocale()
 
   const featured = await db
     .select({
@@ -33,39 +37,36 @@ export default async function LandingPage() {
   return (
     <PageShell>
       <header className="space-y-6 md:space-y-8">
-        <h1 className="text-h1 font-medium">
-          A journal for beans, recipes and tasting notes.
-        </h1>
+        <h1 className="text-h1 font-medium">{landing.headline}</h1>
         <p className="text-body text-muted-foreground max-w-sm">
-          Log every bean and brew, dial in your recipes, and share what&apos;s
-          worth sharing.
+          {landing.body}
         </p>
         <div className="text-body flex items-center gap-8">
           <Link
             href="/signup"
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            Sign up
+            {nav.signUp}
           </Link>
           <Link
             href="/login"
             className="text-muted-foreground hover:text-foreground underline underline-offset-4"
           >
-            Sign in
+            {nav.signIn}
           </Link>
         </div>
       </header>
 
       <section className="space-y-8 md:space-y-10">
         <div className="space-y-1">
-          <h2 className="text-h2 font-medium">Public brews</h2>
+          <h2 className="text-h2 font-medium">{landing.publicBrews}</h2>
           <p className="text-small text-muted-foreground">
-            Latest notes shared by the community.
+            {landing.publicBrewsHint}
           </p>
         </div>
         {featured.length === 0 ? (
           <p className="text-body text-muted-foreground">
-            No public brews yet — be the first to share one.
+            {landing.noPublicBrews}
           </p>
         ) : (
           <div>
@@ -76,7 +77,7 @@ export default async function LandingPage() {
                 className="group border-border grid grid-cols-[6.5rem_1fr_auto] items-baseline gap-x-3 border-b py-4 md:grid-cols-12 md:gap-x-5"
               >
                 <p className="text-small text-muted-foreground md:col-span-2">
-                  {formatDate(entry.brewedAt)}
+                  {formatDate(entry.brewedAt, locale)}
                 </p>
                 <p className="text-h3 font-medium group-hover:underline group-hover:underline-offset-4 md:col-span-4">
                   {entry.method}{" "}
@@ -99,7 +100,7 @@ export default async function LandingPage() {
             href="/explore"
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            Explore all public brews
+            {landing.exploreAll}
           </Link>
         </div>
       </section>

@@ -8,6 +8,8 @@ import { PageShell } from "@/components/page-shell"
 import { clampPage, PAGE_SIZE, Pagination } from "@/components/pagination"
 import { db } from "@/lib/db"
 import { brews, user } from "@/lib/db/schema"
+import { getDictionary } from "@/lib/i18n"
+import { label } from "@/lib/i18n/config"
 
 export async function generateMetadata({
   params,
@@ -25,7 +27,11 @@ export default async function PublicProfilePage({
   params: Promise<{ username: string }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const [{ username }, sp] = await Promise.all([params, searchParams])
+  const [{ username }, sp, { list, pagination, enums }] = await Promise.all([
+    params,
+    searchParams,
+    getDictionary(),
+  ])
 
   const profile = await db.query.user.findFirst({
     where: eq(user.username, username),
@@ -53,13 +59,13 @@ export default async function PublicProfilePage({
 
   return (
     <PageShell>
-      <PageHeader kicker="Public journal" title={profile.name} />
+      <PageHeader kicker={list.publicJournal} title={profile.name} />
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Brews</h2>
+        <h2 className="text-h2 font-medium">{list.brewsHeading}</h2>
         {publicBrews.length === 0 ? (
           <p className="text-body text-muted-foreground">
-            No public brews yet.
+            {list.noPublicBrewsYet}
           </p>
         ) : (
           <div>
@@ -67,7 +73,7 @@ export default async function PublicProfilePage({
               <ListRow
                 key={brew.id}
                 href={`/brews/${brew.id}`}
-                title={brew.method}
+                title={label(enums.methods, brew.method)}
                 subtitle={brew.bean.name}
                 date={brew.brewedAt}
               >
@@ -82,6 +88,7 @@ export default async function PublicProfilePage({
           pathname={`/u/${username}`}
           page={page}
           totalPages={totalPages}
+          t={pagination}
         />
       </section>
     </PageShell>

@@ -13,7 +13,10 @@ import { updateBrew } from "../../actions"
 import { BrewForm } from "../../brew-form"
 import { DeleteBrewButton } from "./delete-brew-button"
 
-export const metadata = { title: "Edit Brew" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.editBrew }
+}
 
 export default async function EditBrewPage({
   params,
@@ -21,7 +24,7 @@ export default async function EditBrewPage({
   params: Promise<{ id: string }>
 }) {
   const session = await requireSession()
-  const dict = getDictionary(session.user.locale)
+  const dict = await getDictionary()
   const { id } = await params
 
   const brew = await db.query.brews.findFirst({
@@ -58,6 +61,7 @@ export default async function EditBrewPage({
         defaultDate={brew.brewedAt.toISOString().slice(0, 10)}
         cancelHref={`/brews/${brew.id}`}
         t={dict.form}
+        enums={dict.enums}
         taste={dict.taste}
       />
       <section className="border-border space-y-6 border-t pt-8">

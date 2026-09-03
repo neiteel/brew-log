@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -7,7 +9,7 @@ import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
-function SignupForm() {
+function SignupForm({ t }: { t: Messages["auth"] }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -27,7 +29,7 @@ function SignupForm() {
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Sign up failed.")
+      setError(error.message ?? t.signUpFailed)
       return
     }
     router.push("/journal")
@@ -36,26 +38,26 @@ function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <TextField label="Name" name="name" autoComplete="name" required />
+      <TextField label={t.name} name="name" autoComplete="name" required />
       <TextField
-        label="Username"
+        label={t.username}
         name="username"
         autoComplete="username"
         pattern="[a-zA-Z0-9_.]+"
         minLength={3}
         maxLength={30}
-        placeholder="for your public page: /u/username"
+        placeholder={t.usernameHint}
         required
       />
       <TextField
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         autoComplete="email"
         required
       />
       <TextField
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="new-password"
@@ -68,7 +70,7 @@ function SignupForm() {
         </p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? t.creatingAccount : t.createAccount}
       </Button>
     </form>
   )

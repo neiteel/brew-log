@@ -193,6 +193,10 @@ function TextAreaField({
 // roast scale). All options are visible at once as hairline dots; the
 // selected one inks its dot and label black, the rest stay gray. RadioGroup
 // submits the value via its own name-bound hidden input.
+//
+// Options carry a separate `value` and `label`: what gets stored is English
+// (methods, roast levels, Public/Private are compared and filtered on), while
+// what the reader sees follows their locale.
 function RadioField({
   label,
   name,
@@ -206,7 +210,7 @@ function RadioField({
   label: string
   name: string
   defaultValue?: string | null
-  options: string[]
+  options: { value: string; label: string }[]
   className?: string
   required?: boolean
   value?: string
@@ -230,16 +234,16 @@ function RadioField({
       >
         {options.map((option) => (
           <label
-            key={option}
+            key={option.value}
             className="has-data-checked:text-foreground text-muted-foreground hover:text-foreground group flex cursor-pointer items-center gap-2 py-1 transition-colors"
           >
             <Radio.Root
-              value={option}
+              value={option.value}
               className="border-border-strong group-hover:border-foreground data-checked:border-foreground focus-visible:outline-foreground flex size-3 shrink-0 items-center justify-center rounded-full border outline-none focus-visible:outline-1 focus-visible:outline-offset-2"
             >
               <Radio.Indicator className="bg-foreground size-1.5 rounded-full" />
             </Radio.Root>
-            {option}
+            {option.label}
           </label>
         ))}
       </RadioGroup>

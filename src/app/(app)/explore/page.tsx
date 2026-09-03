@@ -11,8 +11,13 @@ import { SelectField } from "@/components/text-input"
 import { db } from "@/lib/db"
 import { beans, brewRatings, brews, user } from "@/lib/db/schema"
 import { brewRatio } from "@/lib/format"
+import { getDictionary } from "@/lib/i18n"
+import { label } from "@/lib/i18n/config"
 
-export const metadata = { title: "Explore" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.explore }
+}
 
 function param(value: string | string[] | undefined) {
   return typeof value === "string" && value ? value : undefined
@@ -23,6 +28,7 @@ export default async function ExplorePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const { list, filters, pagination, enums } = await getDictionary()
   const sp = await searchParams
   const method = param(sp.method)
   const origin = param(sp.origin)
@@ -112,30 +118,30 @@ export default async function ExplorePage({
 
   return (
     <PageShell>
-      <PageHeader kicker="Public brews" title="Explore" />
+      <PageHeader kicker={list.exploreKicker} title={list.exploreTitle} />
 
       <section className="space-y-8 md:space-y-10">
         <form className="grid gap-x-5 gap-y-6 md:grid-cols-12">
           <SelectField
-            label="Method"
+            label={filters.method}
             name="method"
             defaultValue={method ?? ""}
             className="md:col-span-4"
           >
-            <option value="">All</option>
+            <option value="">{filters.all}</option>
             {methodOptions.map((m) => (
               <option key={m} value={m}>
-                {m}
+                {label(enums.methods, m)}
               </option>
             ))}
           </SelectField>
           <SelectField
-            label="Origin"
+            label={filters.origin}
             name="origin"
             defaultValue={origin ?? ""}
             className="md:col-span-4"
           >
-            <option value="">All</option>
+            <option value="">{filters.all}</option>
             {originOptions.map((o) => (
               <option key={o} value={o}>
                 {o}
@@ -143,15 +149,15 @@ export default async function ExplorePage({
             ))}
           </SelectField>
           <SelectField
-            label="Roast"
+            label={filters.roast}
             name="roast"
             defaultValue={roast ?? ""}
             className="md:col-span-4"
           >
-            <option value="">All</option>
+            <option value="">{filters.all}</option>
             {roastOptions.map((r) => (
               <option key={r} value={r}>
-                {r}
+                {label(enums.roastLevels, r)}
               </option>
             ))}
           </SelectField>
@@ -160,14 +166,14 @@ export default async function ExplorePage({
               type="submit"
               className="hover:text-muted-foreground font-medium underline underline-offset-4"
             >
-              Apply
+              {filters.apply}
             </button>
             {hasFilters ? (
               <Link
                 href="/explore"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-4"
               >
-                Clear filters
+                {filters.clear}
               </Link>
             ) : null}
           </div>
@@ -175,7 +181,7 @@ export default async function ExplorePage({
 
         {entries.length === 0 ? (
           <p className="text-body text-muted-foreground">
-            No public brews match these filters yet.
+            {list.noPublicBrews}
           </p>
         ) : (
           <div>
@@ -196,7 +202,7 @@ export default async function ExplorePage({
                 <ListRow
                   key={entry.id}
                   href={`/brews/${entry.id}`}
-                  title={entry.method}
+                  title={label(enums.methods, entry.method)}
                   subtitle={entry.beanName}
                   date={entry.brewedAt}
                 >
@@ -236,6 +242,7 @@ export default async function ExplorePage({
           page={page}
           totalPages={totalPages}
           params={{ method, origin, roast }}
+          t={pagination}
         />
       </section>
     </PageShell>

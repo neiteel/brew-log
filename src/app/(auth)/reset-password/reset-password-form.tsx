@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -7,7 +9,13 @@ import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
-function ResetPasswordForm({ token }: { token: string }) {
+function ResetPasswordForm({
+  token,
+  t,
+}: {
+  token: string
+  t: Messages["auth"]
+}) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -19,7 +27,7 @@ function ResetPasswordForm({ token }: { token: string }) {
     const password = String(form.get("password"))
     const confirm = String(form.get("confirm"))
     if (password !== confirm) {
-      setError("Passwords don't match.")
+      setError(t.passwordMismatch)
       return
     }
     setPending(true)
@@ -29,7 +37,7 @@ function ResetPasswordForm({ token }: { token: string }) {
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Couldn't reset your password.")
+      setError(error.message ?? t.resetFailed)
       return
     }
     router.push("/login")
@@ -39,7 +47,7 @@ function ResetPasswordForm({ token }: { token: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <TextField
-        label="New password"
+        label={t.newPassword}
         name="password"
         type="password"
         autoComplete="new-password"
@@ -47,7 +55,7 @@ function ResetPasswordForm({ token }: { token: string }) {
         required
       />
       <TextField
-        label="Confirm new password"
+        label={t.confirmPassword}
         name="confirm"
         type="password"
         autoComplete="new-password"
@@ -60,7 +68,7 @@ function ResetPasswordForm({ token }: { token: string }) {
         </p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Resetting…" : "Reset password"}
+        {pending ? t.resetting : t.resetPassword}
       </Button>
     </form>
   )

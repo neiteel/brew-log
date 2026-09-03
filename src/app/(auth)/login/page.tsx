@@ -1,16 +1,13 @@
 import Link from "next/link"
 
 import { SocialAuth } from "@/components/social-auth"
+import { getDictionary } from "@/lib/i18n"
 
 import { LoginForm } from "./login-form"
 
-export const metadata = { title: "Sign in" }
-
-// Friendly messages for error codes Better Auth appends to the login URL after
-// a failed social sign-in (see SocialAuth's errorCallbackURL).
-const ERROR_MESSAGES: Record<string, string> = {
-  account_not_linked:
-    "This email already has a password. Sign in with it below. Once you verify your email, you can also use Google.",
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.signIn }
 }
 
 export default async function LoginPage({
@@ -19,9 +16,13 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const { error } = await searchParams
+  const { auth: t } = await getDictionary()
+  // Better Auth appends an error code to the login URL after a failed social
+  // sign-in (see SocialAuth's errorCallbackURL); only one has its own message.
   const errorMessage = error
-    ? (ERROR_MESSAGES[error] ??
-      "Something went wrong signing in. Please try again.")
+    ? error === "account_not_linked"
+      ? t.accountNotLinked
+      : t.socialGenericError
     : null
 
   const devCredentials =
@@ -34,22 +35,23 @@ export default async function LoginPage({
 
   return (
     <div className="space-y-10">
-      <h1 className="text-h1 font-medium">Sign in</h1>
+      <h1 className="text-h1 font-medium">{t.signIn}</h1>
       {errorMessage ? (
         <p className="text-body text-destructive">{errorMessage}</p>
       ) : null}
       <LoginForm
         defaultEmail={devCredentials?.email}
         defaultPassword={devCredentials?.password}
+        t={t}
       />
-      <SocialAuth />
+      <SocialAuth t={t} />
       <p className="text-body text-muted-foreground">
-        No account yet?{" "}
+        {t.noAccount}{" "}
         <Link
           href="/signup"
           className="text-foreground hover:text-muted-foreground underline underline-offset-4"
         >
-          Sign up
+          {t.signUp}
         </Link>
       </p>
     </div>

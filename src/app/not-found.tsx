@@ -5,7 +5,10 @@ import { SiteHeader } from "@/components/site-header"
 import { getDictionary } from "@/lib/i18n"
 import { getSession } from "@/lib/session"
 
-export const metadata = { title: "Not found" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.notFound }
+}
 
 // Catches both unmatched URLs and every `notFound()` thrown in the app — a
 // deleted brew, a bean that belongs to someone else, a username that no longer
@@ -13,7 +16,7 @@ export const metadata = { title: "Not found" }
 // its own way back in.
 export default async function NotFound() {
   const session = await getSession()
-  const dict = getDictionary(session?.user.locale)
+  const dict = await getDictionary()
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-375 flex-col px-3 md:px-5">

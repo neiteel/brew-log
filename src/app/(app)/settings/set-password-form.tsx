@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -8,7 +10,7 @@ import { TextField } from "@/components/text-input"
 
 import { setPasswordAction } from "./set-password-action"
 
-function SetPasswordForm() {
+function SetPasswordForm({ t }: { t: Messages["settings"] }) {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +25,7 @@ function SetPasswordForm() {
     const newPassword = String(form.get("newPassword"))
     const confirm = String(form.get("confirm"))
     if (newPassword !== confirm) {
-      setError("Passwords don't match.")
+      setError(t.setPasswordMismatch)
       return
     }
     setPending(true)
@@ -41,12 +43,9 @@ function SetPasswordForm() {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="max-w-sm space-y-6">
-      <p className="text-body text-muted-foreground">
-        You signed in with Google. Set a password to also sign in with your
-        email address.
-      </p>
+      <p className="text-body text-muted-foreground">{t.setPasswordPrompt}</p>
       <TextField
-        label="New password"
+        label={t.newPassword}
         name="newPassword"
         type="password"
         autoComplete="new-password"
@@ -54,7 +53,7 @@ function SetPasswordForm() {
         required
       />
       <TextField
-        label="Confirm new password"
+        label={t.confirmPassword}
         name="confirm"
         type="password"
         autoComplete="new-password"
@@ -67,10 +66,10 @@ function SetPasswordForm() {
         </p>
       ) : null}
       {done ? (
-        <p className="text-body text-muted-foreground">Password set.</p>
+        <p className="text-body text-muted-foreground">{t.passwordSet}</p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Set password"}
+        {pending ? t.saving : t.setPassword}
       </Button>
     </form>
   )

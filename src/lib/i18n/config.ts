@@ -31,3 +31,20 @@ export function fill(
     key in vars ? String(vars[key]) : `{${key}}`,
   )
 }
+
+/**
+ * Display label for a value the app stores in English (a brew method, a roast
+ * level). Values outside the closed set — a custom method the user typed, a
+ * roast level from an older row — show exactly as stored.
+ */
+export function label(map: Record<string, string>, value: string): string
+export function label(
+  map: Record<string, string>,
+  value: string | null | undefined,
+): string | null | undefined
+export function label(
+  map: Record<string, string>,
+  value: string | null | undefined,
+) {
+  return value == null ? value : (map[value] ?? value)
+}

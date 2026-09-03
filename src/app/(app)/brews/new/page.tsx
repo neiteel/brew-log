@@ -14,7 +14,10 @@ import { requireSession } from "@/lib/session"
 import { createBrew } from "../actions"
 import { BrewForm } from "../brew-form"
 
-export const metadata = { title: "New Brew" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.newBrew }
+}
 
 export default async function NewBrewPage({
   searchParams,
@@ -22,7 +25,7 @@ export default async function NewBrewPage({
   searchParams: Promise<{ bean?: string; from?: string }>
 }) {
   const session = await requireSession()
-  const dict = getDictionary(session.user.locale)
+  const dict = await getDictionary()
   const { bean: defaultBeanId, from } = await searchParams
 
   const brewCount = await countBrews(session.user.id)
@@ -107,6 +110,7 @@ export default async function NewBrewPage({
           cancelHref="/journal"
           submitLabel={dict.form.saveBrew}
           t={dict.form}
+          enums={dict.enums}
           taste={dict.taste}
         />
       )}

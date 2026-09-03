@@ -1,8 +1,13 @@
 import Link from "next/link"
 
+import { getDictionary } from "@/lib/i18n"
+
 import { ResetPasswordForm } from "./reset-password-form"
 
-export const metadata = { title: "Reset password" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.resetPassword }
+}
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -10,23 +15,21 @@ export default async function ResetPasswordPage({
   searchParams: Promise<{ token?: string; error?: string }>
 }) {
   const { token, error } = await searchParams
+  const { auth: t } = await getDictionary()
 
   if (!token || error) {
     return (
       <div className="space-y-10">
         <div className="space-y-3">
-          <h1 className="text-h1 font-medium">Link expired</h1>
-          <p className="text-body text-muted-foreground">
-            This password reset link is invalid or has expired. Request a new
-            one to try again.
-          </p>
+          <h1 className="text-h1 font-medium">{t.linkExpiredTitle}</h1>
+          <p className="text-body text-muted-foreground">{t.linkExpiredBody}</p>
         </div>
         <p className="text-body text-muted-foreground">
           <Link
             href="/forgot-password"
             className="text-foreground hover:text-muted-foreground underline underline-offset-4"
           >
-            Request a new link
+            {t.requestNewLink}
           </Link>
         </p>
       </div>
@@ -36,12 +39,10 @@ export default async function ResetPasswordPage({
   return (
     <div className="space-y-10">
       <div className="space-y-3">
-        <h1 className="text-h1 font-medium">Reset password</h1>
-        <p className="text-body text-muted-foreground">
-          Choose a new password for your account.
-        </p>
+        <h1 className="text-h1 font-medium">{t.resetTitle}</h1>
+        <p className="text-body text-muted-foreground">{t.resetIntro}</p>
       </div>
-      <ResetPasswordForm token={token} />
+      <ResetPasswordForm token={token} t={t} />
     </div>
   )
 }

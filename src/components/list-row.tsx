@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 
 import { formatDate } from "@/lib/format"
+import { getLocale } from "@/lib/i18n"
 
 type ListRowProps<T extends string> = {
   href: Route<T>
@@ -25,20 +26,22 @@ type ListRowProps<T extends string> = {
  * anything was brewed. Below md it leads the row as a small gray line instead
  * of taking a column of its own.
  */
-export function ListRow<T extends string>({
+export async function ListRow<T extends string>({
   href,
   title,
   subtitle,
   date,
   children,
 }: ListRowProps<T>) {
+  const locale = await getLocale()
+
   return (
     <Link
       href={href}
       className="group border-border grid grid-cols-1 gap-x-3 gap-y-1 border-b py-4 md:grid-cols-12 md:items-baseline md:gap-x-5 md:gap-y-0"
     >
       <p className="text-small text-muted-foreground md:hidden">
-        {formatDate(date)}
+        {formatDate(date, locale)}
       </p>
       <p className="text-h3 font-medium wrap-anywhere group-hover:underline group-hover:underline-offset-4 md:col-span-4">
         {title}
@@ -53,7 +56,7 @@ export function ListRow<T extends string>({
       </p>
       {children}
       <p className="text-small text-muted-foreground hidden md:col-span-2 md:block md:text-right">
-        {formatDate(date)}
+        {formatDate(date, locale)}
       </p>
     </Link>
   )

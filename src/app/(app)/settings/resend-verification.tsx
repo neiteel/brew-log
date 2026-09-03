@@ -1,11 +1,19 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 
 import { TextButton } from "@/components/text-button"
 import { authClient } from "@/lib/auth-client"
 
-function ResendVerification({ email }: { email: string }) {
+function ResendVerification({
+  email,
+  t,
+}: {
+  email: string
+  t: Messages["settings"]
+}) {
   const [sent, setSent] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,7 +27,7 @@ function ResendVerification({ email }: { email: string }) {
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Couldn't send verification email.")
+      setError(error.message ?? t.resendFailed)
       return
     }
     setSent(true)
@@ -27,13 +35,10 @@ function ResendVerification({ email }: { email: string }) {
 
   return (
     <div className="max-w-sm space-y-3">
-      <p className="text-body text-muted-foreground">
-        Your email isn&rsquo;t verified. Verify it to also sign in with Google
-        using this address.
-      </p>
+      <p className="text-body text-muted-foreground">{t.notVerifiedPrompt}</p>
       {sent ? (
         <p role="status" className="text-body text-muted-foreground">
-          Verification email sent. Check your inbox and spam folder.
+          {t.resendSent}
         </p>
       ) : (
         <TextButton
@@ -42,7 +47,7 @@ function ResendVerification({ email }: { email: string }) {
           disabled={pending}
           className="font-normal"
         >
-          {pending ? "Sending…" : "Resend verification email"}
+          {pending ? t.sending : t.resend}
         </TextButton>
       )}
       {error ? (

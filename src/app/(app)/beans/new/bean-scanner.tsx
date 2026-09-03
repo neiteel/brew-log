@@ -1,10 +1,12 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
 import type { BeanScanFields } from "../scan"
 
 import { useRef, useState } from "react"
 
 import { Button } from "@/components/button"
+import { fill } from "@/lib/i18n/config"
 import { cn } from "@/lib/utils"
 
 import { scanBeanPhoto } from "../scan"
@@ -45,10 +47,12 @@ function BeanScanner({
   onScanned,
   initialRemaining,
   limit,
+  t,
 }: {
   onScanned: (fields: BeanScanFields) => void
   initialRemaining: number
   limit: number
+  t: Messages["ai"]
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<Status>("idle")
@@ -64,7 +68,7 @@ function BeanScanner({
     if (!file) return
     if (!file.type.startsWith("image/")) {
       setStatus("error")
-      setError("That's not an image. Upload a photo of the coffee bag.")
+      setError(t.notAnImage)
       return
     }
 
@@ -84,7 +88,7 @@ function BeanScanner({
     } catch (err) {
       console.error("[BeanScanner] scan failed", err)
       setStatus("error")
-      setError("Something went wrong reading that photo. Please try again.")
+      setError(t.scanFailed)
     }
   }
 
@@ -116,14 +120,8 @@ function BeanScanner({
       )}
     >
       <div className="space-y-1">
-        <p className="text-body text-foreground font-medium">
-          Scan a bag photo
-        </p>
-        <p className="text-small text-muted-foreground">
-          Upload, drag in, or snap a photo of the coffee bag and AI will
-          pre-fill the fields below. Check everything before saving — the photo
-          isn’t stored.
-        </p>
+        <p className="text-body text-foreground font-medium">{t.scanHeading}</p>
+        <p className="text-small text-muted-foreground">{t.scanIntro}</p>
       </div>
 
       <div className="text-body flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -133,12 +131,10 @@ function BeanScanner({
           disabled={disabled}
           aria-busy={working}
         >
-          {working ? "Reading photo…" : "Scan bag photo"}
+          {working ? t.scanning : t.scanButton}
         </Button>
         <span role="status" className="text-small text-muted-foreground">
-          {working
-            ? "This can take a few seconds."
-            : `${remaining} of ${limit} scans left this month`}
+          {working ? t.takesSeconds : fill(t.scansLeft, { remaining, limit })}
         </span>
       </div>
 

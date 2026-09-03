@@ -10,9 +10,14 @@ import { clampPage, PAGE_SIZE, Pagination } from "@/components/pagination"
 import { SelectField } from "@/components/text-input"
 import { db } from "@/lib/db"
 import { beans, brews } from "@/lib/db/schema"
+import { getDictionary } from "@/lib/i18n"
+import { label } from "@/lib/i18n/config"
 import { requireSession } from "@/lib/session"
 
-export const metadata = { title: "Journal" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.journal }
+}
 
 function param(value: string | string[] | undefined) {
   return typeof value === "string" && value ? value : undefined
@@ -24,6 +29,7 @@ export default async function JournalPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const session = await requireSession()
+  const { list, filters, pagination, enums } = await getDictionary()
   const sp = await searchParams
   const beanFilter = param(sp.bean)
   const methodFilter = param(sp.method)
@@ -85,14 +91,12 @@ export default async function JournalPage({
 
   return (
     <PageShell>
-      <PageHeader kicker={session.user.name} title="Journal" />
+      <PageHeader kicker={session.user.name} title={list.journalTitle} />
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Beans</h2>
+        <h2 className="text-h2 font-medium">{list.beansHeading}</h2>
         {userBeans.length === 0 ? (
-          <p className="text-body text-muted-foreground">
-            No beans yet — add the first one.
-          </p>
+          <p className="text-body text-muted-foreground">{list.noBeans}</p>
         ) : (
           <div>
             {userBeans.map((bean) => (
@@ -104,7 +108,11 @@ export default async function JournalPage({
                 date={bean.createdAt}
               >
                 <p className="text-body text-muted-foreground wrap-anywhere md:col-span-6">
-                  {[bean.originCountry, bean.process, bean.roastLevel]
+                  {[
+                    bean.originCountry,
+                    bean.process,
+                    label(enums.roastLevels, bean.roastLevel),
+                  ]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -119,19 +127,20 @@ export default async function JournalPage({
           paramName="beans"
           params={{ ...sharedParams, beans: undefined }}
           scroll={false}
+          t={pagination}
         />
         <div className="text-body">
           <Link
             href="/beans/new"
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            New bean
+            {list.newBean}
           </Link>
         </div>
       </section>
 
       <section className="space-y-8 md:space-y-10">
-        <h2 className="text-h2 font-medium">Brews</h2>
+        <h2 className="text-h2 font-medium">{list.brewsHeading}</h2>
 
         {/* next/form: client-side navigation, so scroll={false} can hold the
             reader's place next to the list — same in-place behavior as the
@@ -147,12 +156,12 @@ export default async function JournalPage({
             <input type="hidden" name="beans" value={sharedParams.beans} />
           ) : null}
           <SelectField
-            label="Bean"
+            label={filters.bean}
             name="bean"
             defaultValue={beanFilter ?? ""}
             className="md:col-span-4"
           >
-            <option value="">All</option>
+            <option value="">{filters.all}</option>
             {beanOptions.map((bean) => (
               <option key={bean.id} value={bean.id}>
                 {bean.name}
@@ -160,15 +169,15 @@ export default async function JournalPage({
             ))}
           </SelectField>
           <SelectField
-            label="Method"
+            label={filters.method}
             name="method"
             defaultValue={methodFilter ?? ""}
             className="md:col-span-4"
           >
-            <option value="">All</option>
+            <option value="">{filters.all}</option>
             {methodOptions.map((m) => (
               <option key={m} value={m}>
-                {m}
+                {label(enums.methods, m)}
               </option>
             ))}
           </SelectField>
@@ -177,7 +186,7 @@ export default async function JournalPage({
               type="submit"
               className="hover:text-muted-foreground font-medium underline underline-offset-4"
             >
-              Apply
+              {filters.apply}
             </button>
             {hasFilters ? (
               <Link
@@ -185,7 +194,7 @@ export default async function JournalPage({
                 scroll={false}
                 className="text-muted-foreground hover:text-foreground underline underline-offset-4"
               >
-                Clear filters
+                {filters.clear}
               </Link>
             ) : null}
           </div>
@@ -193,9 +202,7 @@ export default async function JournalPage({
 
         {userBrews.length === 0 ? (
           <p className="text-body text-muted-foreground">
-            {hasFilters
-              ? "No brews match these filters."
-              : "No brews yet — log the first one."}
+            {hasFilters ? list.noBrewsMatch : list.noBrews}
           </p>
         ) : (
           <div>
@@ -203,14 +210,17 @@ export default async function JournalPage({
               <ListRow
                 key={brew.id}
                 href={`/brews/${brew.id}`}
-                title={brew.method}
+                title={label(enums.methods, brew.method)}
                 subtitle={brew.bean.name}
                 date={brew.brewedAt}
               >
                 <p className="text-body md:col-span-6">
                   {brew.rating != null ? `${brew.rating}/10` : "—"}
                   {brew.isPublic ? (
-                    <span className="text-muted-foreground"> · Public</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {label(enums.visibility, "Public")}
+                    </span>
                   ) : null}
                 </p>
               </ListRow>
@@ -224,13 +234,14 @@ export default async function JournalPage({
           paramName="brews"
           params={{ ...sharedParams, brews: undefined }}
           scroll={false}
+          t={pagination}
         />
         <div className="text-body">
           <Link
             href="/brews/new"
             className="hover:text-muted-foreground font-medium underline underline-offset-4"
           >
-            New brew
+            {list.newBrew}
           </Link>
         </div>
       </section>

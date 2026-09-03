@@ -1,5 +1,6 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
 import type { Route } from "next"
 
 import Link from "next/link"
@@ -7,18 +8,24 @@ import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 
-const AUTHED_ITEMS: { href: Route; label: string }[] = [
-  { href: "/journal", label: "Journal" },
-  { href: "/explore", label: "Explore" },
-  { href: "/brews/new", label: "New Brew" },
-  { href: "/settings", label: "Settings" },
-]
+type Nav = Messages["nav"]
 
-const GUEST_ITEMS: { href: Route; label: string }[] = [
-  { href: "/explore", label: "Explore" },
-  { href: "/login", label: "Sign in" },
-  { href: "/signup", label: "Sign up" },
-]
+// Routes stay here; only the labels come in, as the one dictionary slice these
+// two components need.
+function navItems(nav: Nav, authed: boolean): { href: Route; label: string }[] {
+  return authed
+    ? [
+        { href: "/journal", label: nav.journal },
+        { href: "/explore", label: nav.explore },
+        { href: "/brews/new", label: nav.newBrew },
+        { href: "/settings", label: nav.settings },
+      ]
+    : [
+        { href: "/explore", label: nav.explore },
+        { href: "/login", label: nav.signIn },
+        { href: "/signup", label: nav.signUp },
+      ]
+}
 
 function navLinkClass(active: boolean) {
   return cn(
@@ -27,9 +34,9 @@ function navLinkClass(active: boolean) {
   )
 }
 
-function BottomNav({ authed }: { authed: boolean }) {
+function BottomNav({ authed, nav }: { authed: boolean; nav: Nav }) {
   const pathname = usePathname()
-  const items = authed ? AUTHED_ITEMS : GUEST_ITEMS
+  const items = navItems(nav, authed)
 
   return (
     <nav className="border-border bg-background fixed inset-x-0 bottom-0 z-50 border-t md:hidden">
@@ -52,9 +59,9 @@ function BottomNav({ authed }: { authed: boolean }) {
   )
 }
 
-function DesktopNav({ authed }: { authed: boolean }) {
+function DesktopNav({ authed, nav }: { authed: boolean; nav: Nav }) {
   const pathname = usePathname()
-  const items = authed ? AUTHED_ITEMS : GUEST_ITEMS
+  const items = navItems(nav, authed)
 
   return (
     <nav className="text-body hidden items-center gap-8 md:flex">

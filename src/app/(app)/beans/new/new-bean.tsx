@@ -15,9 +15,13 @@ import { BeanScanner } from "./bean-scanner"
 function NewBean({
   quota,
   formLabels,
+  enums,
+  ai,
 }: {
   quota: ScanQuota
   formLabels: Messages["form"]
+  enums: Messages["enums"]
+  ai: Messages["ai"]
 }) {
   const [prefill, setPrefill] = useState<BeanScanFields | null>(null)
   const [version, setVersion] = useState(0)
@@ -27,6 +31,7 @@ function NewBean({
       <BeanScanner
         initialRemaining={quota.remaining}
         limit={quota.limit}
+        t={ai}
         onScanned={(fields) => {
           setPrefill(fields)
           setVersion((v) => v + 1)
@@ -38,6 +43,7 @@ function NewBean({
         prefill={prefill}
         cancelHref="/journal"
         t={formLabels}
+        enums={enums}
       />
     </div>
   )

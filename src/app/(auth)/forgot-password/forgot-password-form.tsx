@@ -1,12 +1,14 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 
 import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
-function ForgotPasswordForm() {
+function ForgotPasswordForm({ t }: { t: Messages["auth"] }) {
   const [sent, setSent] = useState(false)
   const [pending, setPending] = useState(false)
 
@@ -27,27 +29,24 @@ function ForgotPasswordForm() {
   if (sent) {
     return (
       <p role="status" className="text-body text-muted-foreground">
-        If an account exists for that email, we&rsquo;ve sent a link to reset
-        your password. Check your inbox and spam folder.
+        {t.resetLinkSent}
       </p>
     )
   }
 
   return (
     <div className="space-y-8">
-      <p className="text-body text-muted-foreground">
-        Enter your email and we&rsquo;ll send you a link to reset your password.
-      </p>
+      <p className="text-body text-muted-foreground">{t.forgotIntro}</p>
       <form onSubmit={handleSubmit} className="space-y-8">
         <TextField
-          label="Email"
+          label={t.email}
           name="email"
           type="email"
           autoComplete="email"
           required
         />
         <Button type="submit" disabled={pending}>
-          {pending ? "Sending…" : "Send reset link"}
+          {pending ? t.sending : t.sendResetLink}
         </Button>
       </form>
     </div>

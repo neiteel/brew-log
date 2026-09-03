@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -11,9 +13,11 @@ import { authClient } from "@/lib/auth-client"
 function LoginForm({
   defaultEmail,
   defaultPassword,
+  t,
 }: {
   defaultEmail?: string
   defaultPassword?: string
+  t: Messages["auth"]
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +34,7 @@ function LoginForm({
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Sign in failed.")
+      setError(error.message ?? t.signInFailed)
       return
     }
     router.push("/journal")
@@ -40,7 +44,7 @@ function LoginForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <TextField
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         autoComplete="email"
@@ -48,7 +52,7 @@ function LoginForm({
         required
       />
       <TextField
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="current-password"
@@ -60,7 +64,7 @@ function LoginForm({
           href="/forgot-password"
           className="text-foreground hover:text-muted-foreground underline underline-offset-4"
         >
-          Forgot password?
+          {t.forgotPassword}
         </Link>
       </p>
       {error ? (
@@ -69,7 +73,7 @@ function LoginForm({
         </p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? t.signingIn : t.signIn}
       </Button>
     </form>
   )

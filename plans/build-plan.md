@@ -18,16 +18,7 @@
 - [x] 14. Explore 社群評分（★5）→ [history/14-community-ratings.md](history/14-community-ratings.md)
 - [x] 15. i18n 繁中（en / zh-Hant）→ [history/15-i18n-zh-hant.md](history/15-i18n-zh-hant.md)
 - [x] 16. Perf：fetching / cache 優化（getSession 去重 + brew 詳情頁併行 + 清未用依賴）→ [history/16-perf-fetching-cache.md](history/16-perf-fetching-cache.md)
-- [ ] 17. i18n 後續鋪設：journal / explore 列表、導覽列（app-nav / site-header）、登入/註冊/Settings 其餘 chrome、各頁 `metadata.title`、enum 選項值（沖煮方式/國家/處理法/烘焙度）與 placeholder 範例。沿用同模式（server 直接 `getDictionary`、client 收切片）。2026-09-02 critique 補上的漏網（原清單未涵蓋）：
-  - **`brew-master.tsx` 全支 8 條字串零 i18n**（`:46`、`:53-54`、`:67-68`、`:80/:82/:83`、`:87`、`:89`、`:90`）——兩本字典都沒有 `brewMaster` 區塊。`dict` 以 props 傳入，比照 `star-rating.tsx:26` 已在做的。
-  - `brews/[id]/page.tsx:271` 的 `<h2>Brew Master</h2>` 硬寫，兄弟標題都走 `dict.*`。
-  - `pagination.tsx:57-68`（Previous / Next / Page X of Y）無 i18n prop。
-  - `format.ts:1` 對所有語系硬寫 `en-GB` → 改吃 locale。
-  - `advice.ts:42-52` 從 `Accept-Language` 讀回覆語言，與全站的 `session.user.locale` 不一致——繁中使用者用英文語系瀏覽器會拿到英文建議。
-  - `brew-form.tsx:313` `options={["Private","Public"]}`：字典已有（`en.ts:61-62`）且 `brews/[id]/page.tsx:90` 有用。**注意它們同時是送出的值**，要先做 value/label 拆分才能在地化。
-  - 驗證與 AI 錯誤訊息（`actions.ts:55-105,170`、`advice.ts:193,201,208,235,299,317`）全英文。
-  - `src/app/error.tsx`（2026-09-02 `/impeccable harden` 新增）全英文。錯誤邊界必須是 client component，沒有 server 父層能把字典當 props 傳進來——`not-found.tsx` 是 server 所以已在地化，這支不是。需要先決定 client chrome 怎麼拿 locale（同一個決定也解掉 `app-nav` / `site-header` / auth 表單）。
-  - 型別已幫你把關：`en.ts:162-166` 的 `Widen<typeof en>` 會讓編譯器抓出每個缺 key。
+- [x] 17. i18n 後續鋪設（全站 chrome、訪客語系後備、日期/enum/驗證訊息在地化）→ [history/23-i18n-rollout.md](history/23-i18n-rollout.md)
 - [ ] 18. Better Auth `session.cookieCache`（跨 request 省 session DB 查詢；建議與付費分級一起做）。目前未開，`auth.api.getSession` 每次查 DB；feature 16 的 `React.cache` 只解決同一 request 內的重複。啟用要點：
   - `session.cookieCache: { enabled: true, maxAge: 60~300 }`，maxAge 短一點把 staleness 窗壓小。
   - **鐵則**：cookie 只服務渲染（身分／`locale`／方案徽章）；**額度上限與用量一律讀 DB**。用量本來就即時查 DB（`countBeans/countBrews`、`brewAdviceUsage`、`bean_scan_usage`），不受影響。
@@ -75,3 +66,6 @@
 - **寄件網域**：目前 `onboarding@resend.dev` 只能寄到 Resend 帳號信箱）。要真正寄給任何使用者（驗證信／重設信）必須先在 Resend 驗證自有網域並改 `EMAIL_FROM`。Resend 免費層額度綁帳號（換 key 不會變多）：**3,000 封/月、100 封/日**，網域驗證本身免費，這個量級對本專案綽綽有餘。
 - **Gemini API key**：production 用 **AI Studio 免費層 key（不綁信用卡）**——最壞情況是額度用完請求失敗，零金錢風險。目前開發用的 key 不是免費層，上線前另建。
 - **公開 repo**：git 歷史已掃過無密鑰（2026-07 確認）。公開 repo （Resend 網域未驗證期間，使用者註冊收不到驗證信）。
+- **`Vary: Accept-Language`（feature 17 埋下的地雷，2026-09-03 記）**：訪客語系改由 `Accept-Language` 決定後，同一個 URL 的內容會依表頭變動，但回應的 `Vary` 只有 `rsc, next-router-*, Accept-Encoding`，**沒有 `Accept-Language`**。目前無害——全站 route 都是 `ƒ`，Vercel 不會 CDN 快取。**哪天給公開頁（`/`、`/explore`、`/u/[username]`、公開 brew）加上 `s-maxage` 或 `revalidate`，就要同時補上 `Vary: Accept-Language`**，否則繁中訪客會拿到快取住的英文頁。
+- **不要改成 `[lang]` 路由**：理由與唯一的例外（landing 頁）見 [history/15-i18n-zh-hant.md](history/15-i18n-zh-hant.md) 末段。
+

@@ -7,6 +7,7 @@ import { z } from "zod"
 
 import { db } from "@/lib/db"
 import { beanScanUsage } from "@/lib/db/schema"
+import { getDictionary } from "@/lib/i18n"
 import { requireSession } from "@/lib/session"
 
 // How many photo scans a single user may run per (UTC) month. Keeps token
@@ -142,6 +143,7 @@ export async function scanBeanPhoto(input: {
   mediaType: string
 }): Promise<ScanBeanResult> {
   const session = await requireSession()
+  const { ai } = await getDictionary()
 
   // Gate the model behind a verified email. Anonymous scripts can register
   // accounts freely, but each would need a real, reachable inbox to spend the
@@ -150,7 +152,7 @@ export async function scanBeanPhoto(input: {
     const { remaining } = await getBeanScanQuota()
     return {
       ok: false,
-      error: "Please verify your email address to use AI scanning.",
+      error: ai.verifyEmailScan,
       remaining,
     }
   }
@@ -161,7 +163,7 @@ export async function scanBeanPhoto(input: {
     const { remaining } = await getBeanScanQuota()
     return {
       ok: false,
-      error: "Please upload a photo of the coffee bag.",
+      error: ai.noPhoto,
       remaining,
     }
   }
@@ -169,7 +171,7 @@ export async function scanBeanPhoto(input: {
     const { remaining } = await getBeanScanQuota()
     return {
       ok: false,
-      error: "That image is too large. Try again.",
+      error: ai.imageTooLarge,
       remaining,
     }
   }

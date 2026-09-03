@@ -1,8 +1,20 @@
-const dateFormat = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-})
+import type { Locale } from "@/lib/i18n/config"
+
+// One formatter per locale, built once. `en` stays on en-GB: the app is
+// British-flavored English ("7 Jul 2026", grams, £), and switching it to
+// en-US would reorder every date already on screen.
+const dateFormats: Record<Locale, Intl.DateTimeFormat> = {
+  en: new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }),
+  "zh-Hant": new Intl.DateTimeFormat("zh-Hant", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }),
+}
 
 export function formatTime(seconds: number | null | undefined) {
   if (seconds == null) return null
@@ -11,11 +23,14 @@ export function formatTime(seconds: number | null | undefined) {
   return `${m}:${String(s).padStart(2, "0")}`
 }
 
-export function formatDate(value: Date | string | null | undefined) {
+export function formatDate(
+  value: Date | string | null | undefined,
+  locale: Locale,
+) {
   if (!value) return null
   const date = typeof value === "string" ? new Date(value) : value
   if (Number.isNaN(date.getTime())) return null
-  return dateFormat.format(date)
+  return dateFormats[locale].format(date)
 }
 
 /** Espresso is measured by liquid yield, every other method by water. */

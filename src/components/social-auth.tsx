@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 
 import { Button } from "@/components/button"
@@ -28,7 +30,7 @@ function GoogleMark() {
   )
 }
 
-function SocialAuth() {
+function SocialAuth({ t }: { t: Messages["auth"] }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,7 +48,7 @@ function SocialAuth() {
     })
     if (error) {
       setPending(false)
-      setError(error.message ?? "Couldn't start Google sign-in.")
+      setError(error.message ?? t.googleFailed)
     }
   }
 
@@ -54,7 +56,9 @@ function SocialAuth() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <span className="border-border flex-1 border-t" />
-        <span className="text-body text-muted-foreground">or</span>
+        <span className="text-body text-muted-foreground">
+          {t.socialDivider}
+        </span>
         <span className="border-border flex-1 border-t" />
       </div>
       {/* An alternative route to the same destination, so it stays quieter
@@ -67,7 +71,7 @@ function SocialAuth() {
         className="w-full py-3"
       >
         <GoogleMark />
-        {pending ? "Redirecting…" : "Continue with Google"}
+        {pending ? t.redirecting : t.continueWithGoogle}
       </Button>
       {error ? (
         <p role="alert" className="text-body text-destructive">

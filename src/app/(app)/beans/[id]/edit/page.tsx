@@ -13,7 +13,10 @@ import { updateBean } from "../../actions"
 import { BeanForm } from "../../bean-form"
 import { DeleteBeanButton } from "./delete-bean-button"
 
-export const metadata = { title: "Edit Bean" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.editBean }
+}
 
 export default async function EditBeanPage({
   params,
@@ -21,7 +24,7 @@ export default async function EditBeanPage({
   params: Promise<{ id: string }>
 }) {
   const session = await requireSession()
-  const dict = getDictionary(session.user.locale)
+  const dict = await getDictionary()
   const { id } = await params
 
   const bean = await db.query.beans.findFirst({
@@ -47,6 +50,7 @@ export default async function EditBeanPage({
         bean={bean}
         cancelHref={`/beans/${bean.id}`}
         t={dict.form}
+        enums={dict.enums}
       />
       <section className="border-border space-y-6 border-t pt-8">
         <p className="text-body text-muted-foreground">

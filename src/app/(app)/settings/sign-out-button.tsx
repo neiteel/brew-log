@@ -1,11 +1,13 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useRouter } from "next/navigation"
 
 import { TextButton } from "@/components/text-button"
 import { authClient } from "@/lib/auth-client"
 
-function SignOutButton() {
+function SignOutButton({ t }: { t: Messages["settings"] }) {
   const router = useRouter()
 
   async function handleSignOut() {
@@ -16,7 +18,7 @@ function SignOutButton() {
 
   return (
     <TextButton type="button" onClick={handleSignOut} className="font-normal">
-      Sign out
+      {t.signOut}
     </TextButton>
   )
 }

@@ -18,7 +18,7 @@ import {
   TextField,
 } from "@/components/text-input"
 import { formatRatio, formatTime, isEspresso } from "@/lib/format"
-import { fill } from "@/lib/i18n/config"
+import { fill, label } from "@/lib/i18n/config"
 import { cn } from "@/lib/utils"
 
 const METHODS = [
@@ -58,6 +58,7 @@ function BrewForm<T extends string>({
   submitLabel,
   t,
   taste,
+  enums,
 }: {
   action: (prev: BrewFormState, formData: FormData) => Promise<BrewFormState>
   brew?: Brew
@@ -70,6 +71,7 @@ function BrewForm<T extends string>({
   /** Only the form + taste slices — the strings this form actually renders. */
   t: Messages["form"]
   taste: Messages["taste"]
+  enums: Messages["enums"]
 }) {
   const [state, formAction, pending] = useActionState(action, {
     fieldErrors: null,
@@ -135,7 +137,10 @@ function BrewForm<T extends string>({
         <RadioField
           label={t.method}
           name="methodChoice"
-          options={METHODS}
+          options={METHODS.map((value) => ({
+            value,
+            label: label(enums.methods, value),
+          }))}
           value={methodChoice}
           onValueChange={setMethodChoice}
           className="md:col-span-12"
@@ -248,7 +253,7 @@ function BrewForm<T extends string>({
           label={t.grindSetting}
           name="grindSetting"
           defaultValue={brew?.grindSetting ?? ""}
-          placeholder="26 clicks"
+          placeholder={t.egGrindSetting}
           className="md:col-span-4"
         />
         <p className="text-body text-muted-foreground md:col-span-12">
@@ -296,7 +301,7 @@ function BrewForm<T extends string>({
           label={taste.notes}
           name="notes"
           defaultValue={brew?.notes ?? ""}
-          placeholder="How did it taste? What would you change?"
+          placeholder={t.egBrewNotes}
           className="md:col-span-12"
         />
       </Section>
@@ -306,7 +311,10 @@ function BrewForm<T extends string>({
           <RadioField
             label={t.whoCanSee}
             name="isPublic"
-            options={["Private", "Public"]}
+            options={["Private", "Public"].map((value) => ({
+              value,
+              label: label(enums.visibility, value),
+            }))}
             defaultValue={
               brew ? (brew.isPublic ? "Public" : "Private") : "Private"
             }

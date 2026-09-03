@@ -1,4 +1,8 @@
+import type { Messages } from "@/lib/i18n"
+
 import Link from "next/link"
+
+import { fill } from "@/lib/i18n/config"
 
 export const PAGE_SIZE = 10
 
@@ -28,6 +32,7 @@ function Pagination({
   paramName = "page",
   params = {},
   scroll = true,
+  t,
 }: {
   pathname: string
   page: number
@@ -35,6 +40,7 @@ function Pagination({
   paramName?: string
   params?: Record<string, string | undefined>
   scroll?: boolean
+  t: Messages["pagination"]
 }) {
   if (totalPages <= 1) return null
 
@@ -54,11 +60,11 @@ function Pagination({
           scroll={scroll}
           className="hover:text-muted-foreground font-medium underline underline-offset-4"
         >
-          Previous
+          {t.previous}
         </Link>
       ) : null}
       <span className="text-muted-foreground">
-        Page {page} of {totalPages}
+        {fill(t.pageOf, { page, total: totalPages })}
       </span>
       {page < totalPages ? (
         <Link
@@ -66,7 +72,7 @@ function Pagination({
           scroll={scroll}
           className="hover:text-muted-foreground font-medium underline underline-offset-4"
         >
-          Next
+          {t.next}
         </Link>
       ) : null}
     </nav>

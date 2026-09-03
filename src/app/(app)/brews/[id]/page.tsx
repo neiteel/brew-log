@@ -11,7 +11,8 @@ import { TasteScale } from "@/components/taste-scale"
 import { db } from "@/lib/db"
 import { brews } from "@/lib/db/schema"
 import { brewRatio, formatDate, formatTime, isEspresso } from "@/lib/format"
-import { getDictionary } from "@/lib/i18n"
+import { getDictionary, getLocale } from "@/lib/i18n"
+import { label } from "@/lib/i18n/config"
 import { getRatingSummary } from "@/lib/ratings"
 import { getSession } from "@/lib/session"
 
@@ -35,7 +36,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params
   const brew = await getBrew(id)
-  if (!brew) return { title: "Brew" }
+  if (!brew) return { title: (await getDictionary()).titles.brew }
   return { title: `${brew.method} — ${brew.bean.name}` }
 }
 
@@ -46,7 +47,8 @@ export default async function BrewPage({
 }) {
   const session = await getSession()
   // Localize fixed UI to the viewer's own language (default "en" when logged out).
-  const dict = getDictionary(session?.user.locale)
+  const dict = await getDictionary()
+  const locale = await getLocale()
   const { id } = await params
 
   const brew = await getBrew(id)
@@ -104,9 +106,9 @@ export default async function BrewPage({
         <PageHeader
           kicker={
             <>
-              {dict.brew.kicker} — {formatDate(brew.brewedAt)}
+              {dict.brew.kicker} — {formatDate(brew.brewedAt, locale)}
               {isOwner
-                ? ` · ${brew.isPublic ? dict.brew.public : dict.brew.private}`
+                ? ` · ${label(dict.enums.visibility, brew.isPublic ? "Public" : "Private")}`
                 : null}
               {!isOwner && brew.user.username ? (
                 <>
@@ -296,13 +298,14 @@ export default async function BrewPage({
 
           {isOwner && adviceQuota ? (
             <section className="space-y-8 md:space-y-10">
-              <h2 className="text-h2 font-medium">Brew Master</h2>
+              <h2 className="text-h2 font-medium">{dict.brewMaster.heading}</h2>
               <BrewMaster
                 brewId={brew.id}
                 ready={reviewed}
                 initialAdvice={brewAdvice}
                 initialRemaining={adviceQuota.remaining}
                 limit={adviceQuota.limit}
+                t={dict.brewMaster}
               />
             </section>
           ) : null}

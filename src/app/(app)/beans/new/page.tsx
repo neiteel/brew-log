@@ -10,11 +10,14 @@ import { requireSession } from "@/lib/session"
 import { getBeanScanQuota } from "../scan"
 import { NewBean } from "./new-bean"
 
-export const metadata = { title: "New Bean" }
+export async function generateMetadata() {
+  const { titles } = await getDictionary()
+  return { title: titles.newBean }
+}
 
 export default async function NewBeanPage() {
   const session = await requireSession()
-  const dict = getDictionary(session.user.locale)
+  const dict = await getDictionary()
   const beanCount = await countBeans(session.user.id)
 
   if (beanCount >= MAX_BEANS_PER_USER) {
@@ -51,7 +54,12 @@ export default async function NewBeanPage() {
             : undefined
         }
       />
-      <NewBean quota={quota} formLabels={dict.form} />
+      <NewBean
+        quota={quota}
+        formLabels={dict.form}
+        enums={dict.enums}
+        ai={dict.ai}
+      />
     </PageShell>
   )
 }

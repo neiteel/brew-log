@@ -1,5 +1,7 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -7,7 +9,13 @@ import { Button } from "@/components/button"
 import { TextField } from "@/components/text-input"
 import { authClient } from "@/lib/auth-client"
 
-function UsernameForm({ current }: { current: string }) {
+function UsernameForm({
+  current,
+  t,
+}: {
+  current: string
+  t: Messages["settings"]
+}) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -22,7 +30,7 @@ function UsernameForm({ current }: { current: string }) {
     })
     setPending(false)
     if (error) {
-      setError(error.message ?? "Could not update username.")
+      setError(error.message ?? t.updateUsernameFailed)
       return
     }
     router.refresh()
@@ -31,7 +39,7 @@ function UsernameForm({ current }: { current: string }) {
   return (
     <form onSubmit={handleSubmit} className="max-w-sm space-y-6">
       <TextField
-        label="Username"
+        label={t.username}
         name="username"
         defaultValue={current}
         pattern="[a-zA-Z0-9_.]+"
@@ -45,7 +53,7 @@ function UsernameForm({ current }: { current: string }) {
         </p>
       ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save username"}
+        {pending ? t.saving : t.saveUsername}
       </Button>
     </form>
   )

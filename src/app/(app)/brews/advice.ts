@@ -1,13 +1,13 @@
 "use server"
 
-import { headers } from "next/headers"
-
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
 import { and, desc, eq, ne, sql } from "drizzle-orm"
 
 import { db } from "@/lib/db"
 import { brewAdvice, brewAdviceUsage, brews } from "@/lib/db/schema"
+import { getDictionary, getLocale } from "@/lib/i18n"
+import { LOCALE_NAMES } from "@/lib/i18n/config"
 import { requireSession } from "@/lib/session"
 
 // How many Brew Master generations a single user may run per (UTC) month.
@@ -34,21 +34,6 @@ export type BrewAdviceResult =
 // monthly cap.
 function currentPeriod() {
   return `${new Date().toISOString().slice(0, 7)}-01`
-}
-
-// The user's preferred language, as a human-readable name for the prompt's
-// fallback directive. Read from the request's Accept-Language header (e.g.
-// "zh-TW,zh;q=0.9,en;q=0.8" → "Chinese (Taiwan)"), defaulting to English.
-async function preferredLocale(): Promise<string> {
-  const header = (await headers()).get("accept-language")
-  const tag = header?.split(",")[0]?.split(";")[0]?.trim()
-  if (!tag) return "English"
-  try {
-    const names = new Intl.DisplayNames(["en"], { type: "language" })
-    return names.of(tag) ?? "English"
-  } catch {
-    return "English"
-  }
 }
 
 // A brew is "reviewed" — and so eligible for advice — once it has an overall
@@ -118,7 +103,7 @@ Guidance:
 - Respect the brew method (espresso vs pour-over/immersion) and any TDS/extraction-yield data present.
 - If the brew already scores well and matches the roaster's notes, say so plainly and suggest at most one small experiment.
 - Keep it tight: 2–4 short paragraphs or a few bullet points. No preamble, no restating all their numbers back, no markdown headings.
-- Language: write your reply in the SAME language as the taster's own notes below. If there are no taster notes, write in the language named by the "Reply language" directive. Match the user's language even for coffee terminology; do not switch to English out of habit.
+- Language: write your reply in the language named by the "Reply language" directive below. That is the language the user chose for the app, so it wins even when their own tasting notes are written in another language. Match it even for coffee terminology; do not switch to English out of habit.
 - You are giving brewing advice only. Do not write tasting notes or fill in journal fields for the user.`
 
 function ratioLine(brew: BrewRow): string {
@@ -183,6 +168,8 @@ export async function askBrewMaster(
   const session = await requireSession()
   const force = options?.force ?? false
 
+  const { ai } = await getDictionary()
+
   // Gate the model behind a verified email. Anonymous scripts can register
   // accounts freely, but each would need a real, reachable inbox to spend the
   // AI quota — which raises the cost of farming free generations considerably.
@@ -190,7 +177,7 @@ export async function askBrewMaster(
     const { remaining } = await getBrewAdviceQuota()
     return {
       ok: false,
-      error: "Please verify your email address to use the Brew Master.",
+      error: ai.verifyEmailAdvice,
       remaining,
     }
   }
@@ -198,14 +185,14 @@ export async function askBrewMaster(
   const brew = await loadBrew(brewId)
   if (!brew || brew.userId !== session.user.id) {
     const { remaining } = await getBrewAdviceQuota()
-    return { ok: false, error: "Brew not found.", remaining }
+    return { ok: false, error: ai.brewNotFound, remaining }
   }
 
   if (!isBrewReviewed(brew)) {
     const { remaining } = await getBrewAdviceQuota()
     return {
       ok: false,
-      error: "Add an overall rating and score all five taste dimensions first.",
+      error: ai.notReviewed,
       remaining,
     }
   }
@@ -266,7 +253,9 @@ export async function askBrewMaster(
   // Fallback reply language when the brew has no taster notes to detect from:
   // the request's Accept-Language, else English. The primary signal — the
   // notes' own language — is handled by the system prompt.
-  const replyLanguage = await preferredLocale()
+  // The language the user reads the app in — their stored preference, not
+  // whatever their browser happens to send.
+  const replyLanguage = LOCALE_NAMES[await getLocale()]
 
   const prompt = `${describeBean(brew.bean)}
 
@@ -275,7 +264,7 @@ ${describeBrew(brew, "This brew (the one to improve)")}
 Brew history for this coffee (most recent first):
 ${historyBlock}
 
-Reply language (fallback, only if there are no taster notes above): ${replyLanguage}
+Reply language (the user's app language — write the whole reply in it): ${replyLanguage}
 
 Give me advice for my next brew of this coffee.`
 
@@ -296,7 +285,7 @@ Give me advice for my next brew of this coffee.`
     if (!advice) {
       return {
         ok: false,
-        error: "The Brew Master had nothing to add. Try again.",
+        error: ai.emptyAdvice,
         remaining,
       }
     }
@@ -314,7 +303,7 @@ Give me advice for my next brew of this coffee.`
     console.error("[askBrewMaster] generateText failed", error)
     return {
       ok: false,
-      error: "The Brew Master is unavailable right now. Please try again.",
+      error: ai.unavailable,
       remaining,
     }
   }

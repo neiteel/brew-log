@@ -1,8 +1,11 @@
 "use client"
 
+import type { Messages } from "@/lib/i18n"
+
 import { useState } from "react"
 
 import { Button } from "@/components/button"
+import { fill } from "@/lib/i18n/config"
 
 import { askBrewMaster } from "../advice"
 
@@ -14,12 +17,14 @@ function BrewMaster({
   initialAdvice,
   initialRemaining,
   limit,
+  t,
 }: {
   brewId: string
   ready: boolean
   initialAdvice: string | null
   initialRemaining: number
   limit: number
+  t: Messages["brewMaster"]
 }) {
   const [advice, setAdvice] = useState<string | null>(initialAdvice)
   const [status, setStatus] = useState<Status>("idle")
@@ -45,15 +50,14 @@ function BrewMaster({
     } catch (err) {
       console.error("[BrewMaster] request failed", err)
       setStatus("error")
-      setError("Something went wrong. Please try again.")
+      setError(t.failed)
     }
   }
 
   if (!ready) {
     return (
       <p className="text-small text-muted-foreground border-border border border-dashed p-5 md:p-6">
-        Add an overall rating and score all five taste dimensions to ask the
-        Brew Master for tuning advice on your next cup.
+        {t.notReady}
       </p>
     )
   }
@@ -68,10 +72,7 @@ function BrewMaster({
           {advice}
         </p>
       ) : (
-        <p className="text-small text-muted-foreground">
-          Get tailored suggestions for your next brew of this coffee, based on
-          this cup, the roaster’s flavor notes, and your brew history.
-        </p>
+        <p className="text-small text-muted-foreground">{t.intro}</p>
       )}
 
       <div className="text-body flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -81,18 +82,14 @@ function BrewMaster({
           disabled={working || depleted}
           aria-busy={working}
         >
-          {working
-            ? "Thinking…"
-            : advice
-              ? "Regenerate"
-              : "Ask the Brew Master"}
+          {working ? t.thinking : advice ? t.regenerate : t.ask}
         </Button>
         <span role="status" className="text-small text-muted-foreground">
           {working
-            ? "This can take a few seconds."
+            ? t.takesSeconds
             : depleted
-              ? "Monthly limit reached — resets next month."
-              : `${remaining} of ${limit} left this month`}
+              ? t.depleted
+              : fill(t.remaining, { remaining, limit })}
         </span>
       </div>
 
