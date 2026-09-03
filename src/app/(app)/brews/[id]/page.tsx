@@ -206,15 +206,22 @@ export default async function BrewPage({
             unmeasured they spread to 1190px while the hairlines below stop at
             832px, which puts two right edges inside one record.
 
-            auto-fit rather than a fixed four columns, because the set is
-            always 3-7 items — whichever of dose, water/yield, grind, temp,
-            time, TDS and extraction yield were recorded. Four columns orphaned
-            the fifth figure onto a row of its own, and the grinder note made
-            that cell taller so on mobile `(Time)` sat ~100px below its
-            row-mates. A recipe is read as a block, not as a list. */}
+            Content-sized on desktop rather than equal columns. The set is
+            always 3-7 items and their widths are not alike: five figures
+            measured 76/99/146/95/78px, so equal columns handed each 150px —
+            starving `22 clicks` down to 4px of slack before the gap while
+            `16 g` sat on 74px of dead space, which is what pushed the grind
+            setting up against the temperature. Total content is 494px inside
+            an 832px measure, so there was never a shortage; the columns were
+            just the wrong shape. Flex packs them to content and wraps when a
+            record really is too wide, instead of orphaning a figure into a
+            row of empty columns the way a fixed count did.
+
+            Mobile keeps the two-column grid: at 390px the measure is too
+            narrow for content-packing to read as anything but a ragged list. */}
           <div
             className={cn(
-              "grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-5 gap-y-10",
+              "grid grid-cols-2 gap-x-5 gap-y-10 md:flex md:flex-wrap md:gap-x-10",
               DATA_ROW_MEASURE,
             )}
           >
