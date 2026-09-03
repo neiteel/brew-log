@@ -1,7 +1,7 @@
 "use server"
 
 import { google } from "@ai-sdk/google"
-import { generateObject } from "ai"
+import { generateText, Output } from "ai"
 import { and, eq, sql } from "drizzle-orm"
 import { z } from "zod"
 
@@ -209,10 +209,10 @@ export async function scanBeanPhoto(input: {
   const remaining = Math.max(0, MONTHLY_SCAN_LIMIT - (updated?.count ?? 0))
 
   try {
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: google("gemini-3.5-flash"),
-      schema: scanFieldsSchema,
-      system: SYSTEM_PROMPT,
+      output: Output.object({ schema: scanFieldsSchema }),
+      instructions: SYSTEM_PROMPT,
       // "low" thinking: ~2.5x faster than the default with no measured accuracy
       // loss on label extraction; "minimal" started inferring off-label values.
       providerOptions: {
@@ -232,9 +232,9 @@ export async function scanBeanPhoto(input: {
       ],
     })
 
-    return { ok: true, fields: object, remaining }
+    return { ok: true, fields: output, remaining }
   } catch (error) {
-    console.error("[scanBeanPhoto] generateObject failed", error)
+    console.error("[scanBeanPhoto] generateText failed", error)
     return {
       ok: false,
       error:

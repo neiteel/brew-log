@@ -271,7 +271,7 @@ Give me advice for my next brew of this coffee.`
   try {
     const { text } = await generateText({
       model: google(MODEL),
-      system: SYSTEM_PROMPT,
+      instructions: SYSTEM_PROMPT,
       prompt,
       // "minimal" thinking: advice generation isn't a precision task like the
       // bean scanner's label extraction, so we trade a little reasoning depth
